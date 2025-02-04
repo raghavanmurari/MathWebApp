@@ -13,3 +13,4 @@ def redirect_to_dashboard():
 def redirect_to_login():
     """Redirects the user to the login page if not logged in."""
     st.switch_page("pages/login_page.py")
+

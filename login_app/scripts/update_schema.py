@@ -14,21 +14,30 @@ def update_user_schema():
         users = get_user_collection()
         print("Connected to database successfully")
         
-        # Update all existing users
-        result = users.update_many(
-            {},  # Match all documents
+        # Update teacher and admin users
+        teacher_admin_result = users.update_many(
+            {"role": {"$in": ["teacher", "admin"]}},  # Match teachers and admins
             {
                 "$set": {
-                    "name": "Default User",
-                    "gender": "other",
-                    "active": True,
-                    "created_at": datetime.utcnow(),
+                    "parent_email": None,  # Set parent_email to None for teachers/admins
                     "updated_at": datetime.utcnow()
                 }
             }
         )
         
-        print(f"\nUpdated {result.modified_count} users")
+        # Update student users
+        student_result = users.update_many(
+            {"role": "student"},  # Match students
+            {
+                "$set": {
+                    "parent_email": "",  # Empty string for students, to be updated later
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        print(f"\nUpdated {teacher_admin_result.modified_count} teacher/admin users")
+        print(f"Updated {student_result.modified_count} student users")
         
         # Print all users to verify
         print("\nUpdated users in database:")
@@ -40,6 +49,7 @@ def update_user_schema():
             print(f"Name: {user.get('name')}")
             print(f"Gender: {user.get('gender')}")
             print(f"Active: {user.get('active')}")
+            print(f"Parent Email: {user.get('parent_email')}")
             print(f"Created at: {user.get('created_at')}")
             print(f"Updated at: {user.get('updated_at')}")
             print("-" * 50)
