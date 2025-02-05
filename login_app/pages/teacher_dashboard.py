@@ -2,7 +2,7 @@ import streamlit as st
 from utils.session_manager import clear_session, load_session
 from pages.student_list import display_students
 from pages.display_question_bank import display_question_bank, get_db  
-from database.db_connection import get_assignment_collection
+from database.db_connection import get_user_collection, get_assignment_collection
 from bson.objectid import ObjectId  
 from pages.create_assignment import show_create_assignment
 
@@ -49,20 +49,28 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Progress"
 ])
 
+# ✅ Fetch Total Students
+users_collection = get_user_collection()
+total_students = users_collection.count_documents({"role": "student"})
+
+# ✅ Fetch Active Assignments
+assignments_collection = get_assignment_collection()
+active_assignments = assignments_collection.count_documents({"status": "active"})
+
 with tab1:
     st.header("Welcome to the Teacher Dashboard")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric(label="Total Students", value="25", delta="2 new")
+        st.metric(label="Total Students", value=total_students)
     with col2:
-        st.metric(label="Active Assignments", value="8", delta="-1")
+        st.metric(label="Active Assignments", value=active_assignments)
     with col3:
-        st.metric(label="Average Score", value="85%", delta="+5%")
+        st.metric(label="Average Score", value="85%", delta="+5%")  # Placeholder, update later
 
 with tab2:
     st.header("Student Management")
     search_query = st.text_input("🔍 Search Students by Name or Email")
-    display_students()
+    display_students(search_query)
 
 with tab3:
     display_question_bank()
