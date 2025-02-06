@@ -266,7 +266,7 @@ with tab4:
 
                                 update_data["updated_at"] = datetime.utcnow()
 
-                                success = update_user_email(user_email, update_data)
+                                success = update_user(user_email, update_data)
 
                                 if success:
                                     update_type = "Student" if update_choice == "Student Email" else "Parent"
@@ -298,16 +298,20 @@ with tab5:
         # Prepare data for display
         table_data = []
         for index, user in enumerate(users, start=1):
+            role = user.get("role", "N/A")
             table_data.append([
                 user.get("name", "N/A"), 
                 user.get("email", "N/A"), 
-                user.get("parent_email", parent_email),  # NEW COLUMN
-                user.get("role", "N/A"), 
+                user.get("parent_email", "N/A"),
+                role,
+                user.get("gender", "N/A"),
+                str(user.get("grade", "N/A")) if role == "student" else "N/A",
+                user.get("school", "N/A") if role == "student" else "N/A",
                 "✅ Active" if user.get("active", False) else "❌ Inactive"
             ])
 
-        # Define column names (Removed Index)
-        columns = ["Name", "Email", "Parent Email", "Role", "Status"]
+        # Define column names
+        columns = ["Name", "Email", "Parent Email", "Role", "Gender", "Grade", "School", "Status"]
 
         # Convert to DataFrame
         df = pd.DataFrame(table_data, columns=columns)

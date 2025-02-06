@@ -46,7 +46,17 @@ def find_users_by_name_pattern(name_pattern):
 def get_all_users():
     """Fetch all users from the database."""
     users = get_user_collection()
-    return list(users.find({}, {"_id": 0, "name": 1, "email": 1, "parent_email": 1, "role": 1, "active": 1}))
+    return list(users.find({}, {
+        "_id": 0, 
+        "name": 1, 
+        "email": 1, 
+        "parent_email": 1, 
+        "role": 1, 
+        "active": 1,
+        "gender": 1,
+        "grade": 1,
+        "school": 1
+    }))
 
 def save_user(user_data):
     """Saves a new user to the database with student sync."""

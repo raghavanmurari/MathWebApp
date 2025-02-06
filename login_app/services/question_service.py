@@ -1,6 +1,7 @@
 from database.db_connection import get_db
 from bson.objectid import ObjectId
 import streamlit as st
+from datetime import datetime 
 
 # Connect to database
 db = get_db()
@@ -31,7 +32,6 @@ def get_questions_for_assignment(assignment_id):
     }
     
     return list(questions_collection.find(query))
-
 
 def get_current_question():
     """
@@ -66,21 +66,30 @@ def get_current_question():
 def update_student_response(assignment_id, student_id, question_id, selected_answer):
     """
     Updates the student's response in the database.
+    Parameters:
+    - assignment_id: ID of the current assignment
+    - student_id: ID of the current student
+    - question_id: ID of the current question
+    - selected_answer: The complete option object that was selected
     """
-    # Get the question to check the correct answer
+    # Get the question
     question = questions_collection.find_one({"_id": ObjectId(question_id)})
     if not question:
         st.error("Question not found!")
         return
 
-    # Check if the answer is correct
-    is_correct = selected_answer == question.get("solution")
+    # Check if the answer is correct using is_correct flag from the selected option
+    is_correct = selected_answer.get("is_correct", False)
 
+    # Prepare response data
     response_data = {
         "student_id": ObjectId(student_id),
         "assignment_id": ObjectId(assignment_id),
         "question_id": ObjectId(question_id),
-        "selected_answer": selected_answer,
+        "selected_option": {
+            "option_id": selected_answer.get("option_id"),
+            "text": selected_answer.get("text")
+        },
         "is_correct": is_correct,
         "timestamp": datetime.now()
     }
@@ -96,10 +105,5 @@ def update_student_response(assignment_id, student_id, question_id, selected_ans
         upsert=True
     )
 
-    # Move to the next question
-    st.session_state["current_question_index"] = st.session_state.get("current_question_index", 0) + 1
-
-    if is_correct:
-        st.success("Correct answer!")
-    else:
-        st.error(f"Incorrect. The correct answer was: {question.get('solution')}")
+    # Success/error messages are now handled by student_dashboard.py
+    # This allows for more flexible UI feedback

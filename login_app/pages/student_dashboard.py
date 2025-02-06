@@ -2,6 +2,7 @@ import streamlit as st
 from database.db_connection import get_assignment_collection, get_user_collection, get_db
 from bson.objectid import ObjectId
 from services.question_service import get_current_question, update_student_response
+from utils.session_manager import clear_session
 
 # Ensure only students can access this page
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
@@ -21,7 +22,13 @@ if not user:
     st.error("User not found. Please log in again.")
     st.switch_page("pages/login_page.py")
 
-student_id = str(user["_id"])
+students_collection = get_db()["students"]
+student = students_collection.find_one({"user_id": ObjectId(user["_id"])})
+if not student:
+    st.error("Student record not found. Please contact administrator.")
+    st.switch_page("pages/login_page.py")
+
+student_id = str(student["_id"])
 
 # Database connections
 assignments_collection = get_assignment_collection()
@@ -32,7 +39,7 @@ responses_collection = db["responses"]
 # Fetch student details
 student_name = user.get("name", "Student")
 
-# Custom CSS for larger font sizes
+# Updated the CSS to include the feedback styling
 st.markdown("""
     <style>
     .large-text {
@@ -47,10 +54,27 @@ st.markdown("""
         font-size: 18px !important;
         margin: 10px 0;
     }
+    .block-container {padding-top: 2rem; max-width: 1200px;}
+    /* Feedback icons styling */
+    .option-feedback {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 10px;
+    }
+    .stRadio [role=radiogroup] {
+        position: relative;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title(f"Welcome, {student_name}! 👋")
+col1, col2 = st.columns([0.5, 0.1])
+
+with col1:
+    st.title(f"Welcome, {student_name}! 👋")
+with col2:
+    if st.button("Logout", help="Click to logout"):
+        clear_session()
+        st.switch_page("pages/login_page.py")
 
 # Check if we're in question mode
 if "current_assignment" in st.session_state:
@@ -69,41 +93,106 @@ if "current_assignment" in st.session_state:
 
             # Process each option for clean display
             for option in options:
-                # Extract text and clean up LaTeX format
                 display_text = option.get('text', '')
-                # Remove \( and \) and replace with proper LaTeX format
                 display_text = display_text.replace('\\(', '').replace('\\)', '')
                 display_values.append(display_text)
                 option_mapping[display_text] = option
 
-            # Create radio buttons with cleaned display values
+            # Initialize session states if not already present
+            if "selected_option" not in st.session_state:
+                st.session_state.selected_option = None
+            if "is_correct" not in st.session_state:
+                st.session_state.is_correct = None
+            if "submitted" not in st.session_state:
+                st.session_state.submitted = False
+
+            def handle_option_selection():
+                if st.session_state.selected_option:
+                    selected_option = option_mapping[st.session_state.selected_option]
+                    st.session_state.is_correct = selected_option.get("is_correct", False)
+                    # Reset submitted state when new option is selected
+                    st.session_state.submitted = False
+
             selected = st.radio(
                 "Select your answer:",
                 options=display_values,
                 label_visibility="visible",
-                format_func=lambda x: f"${x}$"
+                format_func=lambda x: (f"${x}$ "),
+                key="selected_option",
+                on_change=handle_option_selection
             )
 
-            # Create columns for buttons
+            # Create button layout
             col1, col2, col3 = st.columns([1, 0.2, 1])
             with col1:
-                if st.button("Submit Answer", use_container_width=True):
-                    if selected:
-                        selected_option = option_mapping[selected]
-                        update_student_response(
-                            assignment_id=st.session_state["current_assignment"],
-                            student_id=student_id,
-                            question_id=current_question["_id"],
-                            selected_answer=selected_option
-                        )
-                        st.rerun()
-                    else:
-                        st.warning("Please select an answer first.")
+                submit_clicked = st.button("Submit Answer", use_container_width=True)
             with col3:
                 if st.button("Back to Dashboard", use_container_width=True):
                     del st.session_state["current_assignment"]
                     if "current_question_index" in st.session_state:
                         del st.session_state["current_question_index"]
+                    st.rerun()
+
+            # If submit button is clicked
+            if submit_clicked:
+                if selected:
+                    selected_option = option_mapping[selected]
+                    
+                    # Determine correctness
+                    is_correct = selected_option.get("is_correct", False)
+                    st.session_state["last_submission_correct"] = is_correct
+                    st.session_state.submitted = True
+
+                    # Save response to database
+                    update_student_response(
+                        assignment_id=st.session_state["current_assignment"],
+                        student_id=student_id,
+                        question_id=current_question["_id"],
+                        selected_answer=selected_option
+                    )
+
+                    # Find the correct answer
+                    correct_answer = next((opt["text"] for opt in options if opt["is_correct"]), "N/A")
+
+                    # Feedback section
+                    st.markdown("### Feedback:")
+
+                    # Show feedback next to selected option with LaTeX rendering
+                    if is_correct:
+                        st.success(f"✅ Correct!")
+                    else:
+                        st.markdown(
+                            f'<div style="background-color: #F8D7DA; padding: 10px; border-radius: 5px; color: #721C24;">'
+                            f'❌ Incorrect!'
+                            f'</div>', unsafe_allow_html=True
+                        )
+                        st.markdown(
+                            f'<div style="background-color: #D1ECF1; padding: 10px; border-radius: 5px; color: #0C5460;">'
+                            f'✅ The correct answer is: $$ {correct_answer} $$.'
+                            f'</div>', unsafe_allow_html=True
+                        )
+
+                    # Display solution immediately after feedback
+                    if "solution" in current_question:
+                        st.markdown("### Solution:")
+                        st.markdown(current_question["solution"])
+
+
+                    # Enable "Next Question" button
+                    st.session_state["next_question_ready"] = True
+
+
+                    # Enable "Next Question" button after submission
+                    st.session_state["next_question_ready"] = True
+                    #st.rerun()
+
+            # Display "Next Question" button only if an answer was submitted
+            if st.session_state.get("next_question_ready", False):
+                if st.button("Next Question"):
+                    st.session_state["current_question_index"] += 1
+                    st.session_state["next_question_ready"] = False
+                    # Reset submitted state for next question
+                    st.session_state.submitted = False
                     st.rerun()
 
 else:
@@ -119,11 +208,9 @@ else:
         st.info("No active assignments available.")
     else:
         for assignment in active_assignments:
-            # Fetch topic name properly
             topic = topics_collection.find_one({"_id": ObjectId(assignment.get("topic_id"))})
             assignment_name = topic.get("name", "Untitled Assignment") if topic else "Untitled Assignment"
 
-            # Fetch attempted questions count
             attempted_questions = responses_collection.count_documents({
                 "assignment_id": assignment["_id"],
                 "student_id": ObjectId(student_id)
@@ -133,11 +220,11 @@ else:
             progress_percent = (attempted_questions / total_questions) * 100 if total_questions else 0
             progress_text = f"{int(progress_percent)}% Complete"
 
-            # Display assignment with progress
             col1, col2 = st.columns([0.7, 0.3])
             with col1:
                 st.write(f"📖 **{assignment_name}**")
-                st.progress(progress_percent / 100)
+                st.progress(min(progress_percent / 100, 1.0))  
+                st.write(f"Debug: Progress Percent = {progress_percent}")
                 st.caption(progress_text)
 
             with col2:
