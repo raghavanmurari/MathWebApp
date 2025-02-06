@@ -18,3 +18,8 @@ def get_assignment_collection():
     """Returns the assignments collection from the database."""
     db = get_db()
     return db["assignments"]
+
+def get_question_collection():
+    """Returns the questions collection from the database."""
+    db = get_db()
+    return db["questions"]  # ✅ New function to fetch the questions collection

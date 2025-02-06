@@ -64,6 +64,8 @@ def get_current_question():
     return questions[index]
 
 def update_student_response(assignment_id, student_id, question_id, selected_answer):
+    # Add debug print
+    print(f"Saving response - Student: {student_id}, Assignment: {assignment_id}, Correct: {selected_answer.get('is_correct')}")
     """
     Updates the student's response in the database.
     Parameters:
