@@ -37,11 +37,19 @@ def save_session():
 def clear_session():
     """Ensure all session variables are reset on logout."""
     st.write("DEBUG: Clearing session...")
-    session_keys = ["logged_in", "user_id", "user_role"]
+    # Remove session file if it exists
+    if os.path.exists(SESSION_FILE):
+        os.remove(SESSION_FILE)
+        
+    # Clear all relevant session state variables
+    session_keys = ["logged_in", "user_id", "user_role", "user_email", "remember_me"]
     for key in session_keys:
         if key in st.session_state:
-            del st.session_state[key]  # Properly delete session variables
+            del st.session_state[key]
+            
+    # Set defaults
     st.session_state.logged_in = False
     st.session_state.user_id = None
     st.session_state.user_role = None
+    st.session_state.remember_me = False
     st.rerun()  # Ensure Streamlit reloads with a fresh session
