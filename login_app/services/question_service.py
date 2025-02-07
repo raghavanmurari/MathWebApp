@@ -36,33 +36,76 @@ def get_questions_for_assignment(assignment_id):
 
 def get_current_question():
     """
-    Returns the current question based on session state.
+    Returns the next unanswered question for the student.
     """
-    if "current_assignment" not in st.session_state:
-        return None  # No active assignment
+    if "current_assignment" not in st.session_state or "student_id" not in st.session_state:
+        return None  # No active assignment or student ID missing
 
     assignment_id = st.session_state["current_assignment"]
-    
-    # Get all questions for this assignment
-    questions = get_questions_for_assignment(assignment_id)
-    
-    if not questions:
-        st.error("No questions found for this assignment.")
+    student_id = st.session_state["student_id"]
+
+    db = get_db()
+    assignments_collection = db["assignments"]
+    questions_collection = db["questions"]
+    responses_collection = db["responses"]
+
+    print("\n--- DEBUGGING get_current_question() ---")
+    print(f"Assignment ID: {assignment_id}")
+    print(f"Student ID: {student_id}")
+
+    # Get the topic_id from the assignment
+    assignment = assignments_collection.find_one({"_id": ObjectId(assignment_id)})
+    if not assignment:
+        print("❌ ERROR: Assignment not found!")
+        st.error("Assignment not found.")
         return None
 
-    # Initialize question index if not exists
-    if "current_question_index" not in st.session_state:
-        st.session_state["current_question_index"] = 0
-
-    # Get current index
-    index = st.session_state["current_question_index"]
-    
-    # Check if we've reached the end
-    if index >= len(questions):
-        st.success("You've completed all questions!")
+    topic_id = assignment.get("topic_id")
+    if not topic_id:
+        print("❌ ERROR: Assignment has no topic_id!")
+        st.error("Assignment has no topic linked.")
         return None
 
-    return questions[index]
+    # Fetch questions using topic_id
+    all_questions = list(questions_collection.find({"topic_id": ObjectId(topic_id)}))
+
+    print(f"Total Questions Found: {len(all_questions)}")
+
+    if not all_questions:
+        print("❌ ERROR: No questions found in DB for this topic!")
+        st.error("No questions found for this topic.")
+        return None
+
+    # Get all answered questions and convert ObjectId to string for comparison
+    answered_questions = responses_collection.distinct(
+        "question_id", {"assignment_id": ObjectId(assignment_id), "student_id": ObjectId(student_id)}
+    )
+    answered_questions_str = {str(q_id) for q_id in answered_questions}  # Convert ObjectId list to string set
+
+    print(f"Answered Questions: {answered_questions_str}")
+
+    # Filter unanswered questions
+    unanswered_questions = [q for q in all_questions if str(q["_id"]) not in answered_questions_str]
+
+    print(f"Remaining Unanswered Questions: {len(unanswered_questions)}")
+
+    if not unanswered_questions:
+        print("🎉 Student has completed all questions!")
+        st.success("🎉 You've completed all questions in this assignment!")
+        return None
+
+    # Select the next unanswered question
+    next_question = unanswered_questions[0]
+    print(f"Next Question ID: {next_question['_id']} - {next_question['description']}")
+
+    return next_question
+
+
+
+
+
+
+
 
 def update_student_response(assignment_id, student_id, question_id, selected_answer):
     """
