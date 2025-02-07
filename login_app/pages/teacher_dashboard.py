@@ -5,6 +5,9 @@ from pages.display_question_bank import display_question_bank, get_db
 from database.db_connection import get_user_collection, get_assignment_collection
 from bson.objectid import ObjectId  
 from pages.create_assignment import show_create_assignment
+from utils.progress_tracking import ProgressTracker
+import pandas as pd
+
 
 # ✅ Remove Sidebar & Set Page Config
 st.set_page_config(
@@ -56,6 +59,17 @@ total_students = users_collection.count_documents({"role": "student"})
 # ✅ Fetch Active Assignments
 assignments_collection = get_assignment_collection()
 active_assignments = assignments_collection.count_documents({"status": "active"})
+
+
+def get_accuracy_color(accuracy):
+    """Returns color-coded accuracy levels for easy interpretation."""
+    if accuracy > 80:
+        return "🟢 " + str(round(accuracy, 2)) + "%"
+    elif accuracy >= 50:
+        return "🟡 " + str(round(accuracy, 2)) + "%"
+    else:
+        return "🔴 " + str(round(accuracy, 2)) + "%"
+    
 
 with tab1:
     st.header("Welcome to the Teacher Dashboard")
@@ -185,5 +199,55 @@ with tab4:
         show_create_assignment()
 
 with tab5:
-    st.header("Student Progress")
-    st.write("Progress tracking and analytics will be displayed here")
+    st.header("📊 Student Progress")
+
+    # ✅ Fetch students for dropdown
+    db = get_db()
+    students_collection = db["students"]
+    users_collection = db["users"]  # ✅ Fetch users collection
+
+    progress_tracker = ProgressTracker()
+
+    students_dict = {}
+    for student in students_collection.find({}):
+        user_doc = users_collection.find_one({"_id": student["user_id"]})
+        student_name = user_doc["name"] if user_doc and "name" in user_doc else "Unknown Student"
+        students_dict[str(student["_id"])] = student_name
+
+    if not students_dict:
+        st.warning("No students found.")
+    else:
+        student_id = st.selectbox("Select a Student:", options=list(students_dict.keys()), format_func=lambda x: students_dict[x])
+
+        if student_id:
+            st.subheader(f"Progress for {students_dict[student_id]}")
+
+            # ✅ Fetch student progress data
+            progress_data = progress_tracker.get_subtopic_progress(ObjectId(student_id))
+
+            if not progress_data:
+                st.warning("No progress data available for this student.")
+            else:
+                st.write("### Sub-topic Wise Performance")
+                table_data = []
+                for entry in progress_data:
+                    table_data.append([
+                        entry.get("topic_name", "Unknown Topic"),  # ✅ Fetch Topic Name
+                        entry["sub_topic"],
+                        entry["Easy"]["attempted"], entry["Easy"]["correct"], get_accuracy_color(entry["Easy"]["accuracy"]),
+                        entry["Medium"]["attempted"], entry["Medium"]["correct"], get_accuracy_color(entry["Medium"]["accuracy"]),
+                        entry["Hard"]["attempted"], entry["Hard"]["correct"], get_accuracy_color(entry["Hard"]["accuracy"])
+                    ])
+
+                # Convert table data into a Pandas DataFrame
+                df = pd.DataFrame(table_data, columns=[
+                    "Topic",  # ✅ New Column for Topic Name
+                    "Sub-Topic", 
+                    "Easy Attempted", "Easy Correct", "Easy Accuracy",
+                    "Medium Attempted", "Medium Correct", "Medium Accuracy",
+                    "Hard Attempted", "Hard Correct", "Hard Accuracy"
+                ])
+
+                # Display using Streamlit
+                st.dataframe(df, hide_index=True)
+
