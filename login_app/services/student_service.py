@@ -43,49 +43,70 @@ def get_assignment_progress(student_id):
         assignments_collection = get_assignment_collection()
         topics_collection = db["topics"]
         questions_collection = db["questions"]
-        responses_collection = db["responses"]  # Add this line here
+        responses_collection = db["responses"]
 
+        print(f"Fetching progress for student_id: {student_id}")
+        
+        # Get all active assignments for the student
         active_assignments = list(assignments_collection.find(
             {"students": ObjectId(student_id), "status": "active"}
         ))
+        print(f"Found active assignments: {len(active_assignments)}")
 
         progress_data = []
         for assignment in active_assignments:
-            # ✅ Fetch topic name from topics collection
+            print(f"Processing assignment: {assignment['_id']}")
+            
+            # Get topic data
             topic_data = topics_collection.find_one({"_id": assignment["topic_id"]})
-            topic = topic_data.get("name", "Unknown Topic") if topic_data else "Unknown Topic"
+            if not topic_data:
+                print(f"Topic not found for topic_id: {assignment['topic_id']}")
+                continue
+                
+            topic = topic_data.get("name")
+            sub_topic = assignment.get("sub_topics", [])[0] if assignment.get("sub_topics") else None
+            
+            if not topic or not sub_topic:
+                print(f"Missing topic ({topic}) or sub_topic ({sub_topic})")
+                continue
 
-            # ✅ Extract first sub-topic from array
-            sub_topic = assignment.get("sub_topics", ["Unknown Sub-topic"])[0]
-
-            # ✅ Fetch total questions using topic name and sub-topic
-            total_questions = questions_collection.count_documents({
-                "topic": topic,  # ✅ Match questions based on topic name
-                "sub_topic": sub_topic  # ✅ Match based on sub-topic
+            print(f"Looking for questions with topic: {topic} and sub_topic: {sub_topic}")
+            
+            # Get questions specific to this topic and subtopic
+            questions = questions_collection.count_documents({
+                "topic": topic,
+                "sub_topic": sub_topic
             })
+            print(f"Found {questions} questions for {topic} - {sub_topic}")
 
+            # Get responses for this specific assignment
             attempted = responses_collection.count_documents({
                 "assignment_id": assignment["_id"],
                 "student_id": ObjectId(student_id)
             })
+            print(f"Found {attempted} attempted questions")
 
             correct = responses_collection.count_documents({
                 "assignment_id": assignment["_id"],
                 "student_id": ObjectId(student_id),
                 "is_correct": True
             })
+            print(f"Found {correct} correct answers")
 
             progress_data.append({
-                "topic": topic,  # ✅ Correct topic name
-                "sub_topic": sub_topic,  # ✅ Correct sub-topic name
-                "total_questions": total_questions,  # ✅ Should now show correct values
+                "topic": topic,
+                "sub_topic": sub_topic,
+                "total_questions": questions,
                 "attempted": attempted,
                 "correct": correct
             })
-
+            
+        print(f"Final progress data: {progress_data}")
         return progress_data
+        
     except Exception as e:
         print(f"ERROR in get_assignment_progress: {str(e)}")
+        print(f"Error details: {str(e.__class__.__name__)}")
         return []
 
 def resume_assignment(student_id, topic, sub_topic):

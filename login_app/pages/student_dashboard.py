@@ -1,9 +1,12 @@
 import streamlit as st
+import time
 from database.db_connection import get_assignment_collection, get_user_collection, get_db, get_question_collection
 from bson.objectid import ObjectId
 from services.question_service import get_current_question, update_student_response
 from services.student_service import get_assignment_progress, resume_assignment
 from utils.session_manager import clear_session
+
+
 
 # Authentication checks
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
@@ -53,6 +56,7 @@ with col2:
     if st.button("Logout", help="Click to logout"):
         clear_session()
         st.switch_page("pages/login_page.py")
+
 
 progress_data = get_assignment_progress(student_id)
 

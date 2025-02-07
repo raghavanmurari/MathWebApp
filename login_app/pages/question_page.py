@@ -84,6 +84,9 @@ if current_question:
                del st.session_state["current_assignment"]
                if "current_question_index" in st.session_state:
                    del st.session_state["current_question_index"]
+                       # Add this line to force a fresh data fetch
+               if "progress_data" in st.session_state:
+                   del st.session_state["progress_data"]
                st.switch_page("pages/student_dashboard.py")
 
        if st.session_state.get("next_question_ready", False):
