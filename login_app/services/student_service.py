@@ -1,6 +1,6 @@
 from database.db_connection import get_user_collection, get_question_collection, get_assignment_collection, get_db
 from bson.objectid import ObjectId
-
+from datetime import datetime
 
 def get_all_students():
     """Fetch all students from the database."""
@@ -53,7 +53,10 @@ def get_assignment_progress(student_id):
         ))
         print(f"Found active assignments: {len(active_assignments)}")
 
+        # Track processed sub-topics to avoid duplicates
+        processed_sub_topics = set()
         progress_data = []
+
         for assignment in active_assignments:
             print(f"Processing assignment: {assignment['_id']}")
             
@@ -70,7 +73,13 @@ def get_assignment_progress(student_id):
                 print(f"Missing topic ({topic}) or sub_topic ({sub_topic})")
                 continue
 
-            print(f"Looking for questions with topic: {topic} and sub_topic: {sub_topic}")
+            # Skip if we've already processed this sub-topic
+            if sub_topic in processed_sub_topics:
+                print(f"Skipping duplicate sub-topic: {sub_topic}")
+                continue
+
+            processed_sub_topics.add(sub_topic)
+            print(f"Looking for questions with topic: {topic} and sub-topic: {sub_topic}")
             
             # Get questions specific to this topic and subtopic
             questions = questions_collection.count_documents({
@@ -79,16 +88,32 @@ def get_assignment_progress(student_id):
             })
             print(f"Found {questions} questions for {topic} - {sub_topic}")
 
-            # Get responses for this specific assignment
-            attempted = responses_collection.count_documents({
-                "assignment_id": assignment["_id"],
-                "student_id": ObjectId(student_id)
-            })
+            # Get unique questions attempted by the student for this sub-topic
+            subtopic_questions = list(questions_collection.find({
+                "topic": topic,
+                "sub_topic": sub_topic
+            }))
+            subtopic_question_ids = [q["_id"] for q in subtopic_questions]
+
+            # Get attempts only for questions in this sub-topic
+            attempted_questions = responses_collection.distinct(
+                "question_id",
+                {
+                    "assignment_id": assignment["_id"],
+                    "student_id": ObjectId(student_id),
+                    "question_id": {"$in": subtopic_question_ids}
+                }
+            )
+
+            # Count only unique question attempts
+            attempted = len(attempted_questions)
             print(f"Found {attempted} attempted questions")
 
+            # Count correct answers only for this sub-topic
             correct = responses_collection.count_documents({
                 "assignment_id": assignment["_id"],
                 "student_id": ObjectId(student_id),
+                "question_id": {"$in": subtopic_question_ids},
                 "is_correct": True
             })
             print(f"Found {correct} correct answers")
@@ -110,23 +135,50 @@ def get_assignment_progress(student_id):
         return []
 
 def resume_assignment(student_id, topic, sub_topic):
+    """
+    Resume or create assignment for a specific sub-topic.
+    Each sub-topic gets its own assignment to track progress independently.
+    """
     try:
         assignments = get_assignment_collection()
         topics = get_db()["topics"]
         
         topic_doc = topics.find_one({"name": topic})
-        if topic_doc:
-            print("Searching for assignment with:")
-            print(f"student_id: {ObjectId(student_id)}")
-            print(f"topic_id: {topic_doc['_id']}")
-            
-            assignment = assignments.find_one({
-                "students": ObjectId(student_id),  # Changed from student_id to students
-                "topic_id": topic_doc["_id"],
-                "status": "active"
-            })
-            print(f"Found assignment: {assignment}")
-            return str(assignment["_id"]) if assignment else None
-    except Exception as e:
-            print(f"ERROR in resume_assignment: {str(e)}")
+        if not topic_doc:
+            print(f"Topic not found: {topic}")
             return None
+
+        print("Searching for assignment with:")
+        print(f"student_id: {ObjectId(student_id)}")
+        print(f"topic_id: {topic_doc['_id']}")
+        print(f"sub_topic: {sub_topic}")
+        
+        # Look for an existing assignment for this specific sub-topic
+        assignment = assignments.find_one({
+            "students": ObjectId(student_id),
+            "topic_id": topic_doc["_id"],
+            "sub_topics": [sub_topic],  # Exact match for sub-topic
+            "status": "active"
+        })
+        
+        if assignment:
+            print(f"Found existing assignment for sub-topic: {sub_topic}")
+            return str(assignment["_id"])
+        else:
+            # Create new assignment specifically for this sub-topic
+            print(f"Creating new assignment for sub-topic: {sub_topic}")
+            new_assignment = {
+                "students": [ObjectId(student_id)],
+                "topic_id": topic_doc["_id"],
+                "sub_topics": [sub_topic],
+                "status": "active",
+                "created_at": datetime.now()
+            }
+            result = assignments.insert_one(new_assignment)
+            print(f"Created new assignment with ID: {result.inserted_id}")
+            return str(result.inserted_id)
+                
+    except Exception as e:
+        print(f"ERROR in resume_assignment: {str(e)}")
+        print(f"Error details: {str(e.__class__.__name__)}")
+        return None

@@ -1,8 +1,8 @@
-# question_page.py
 import streamlit as st
 from database.db_connection import get_db, get_question_collection
 from services.question_service import get_current_question, update_student_response
 from utils.session_manager import clear_session
+from bson.objectid import ObjectId
 
 # Authentication checks
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
@@ -17,6 +17,55 @@ if st.session_state.get("user_role") != "student":
 if "current_assignment" not in st.session_state:
    st.error("No active assignment selected.")
    st.switch_page("pages/student_dashboard.py")
+
+def check_subtopic_completion():
+    """Check if all questions in the current sub-topic have been attempted"""
+    try:
+        db = get_db()
+        assignment_id = st.session_state["current_assignment"]
+        student_id = st.session_state.get("student_id")
+        
+        # Get assignment details to find topic and sub-topic
+        assignments = db["assignments"]
+        assignment = assignments.find_one({"_id": ObjectId(assignment_id)})
+        
+        if not assignment:
+            return False
+            
+        # Get questions for this sub-topic
+        questions = db["questions"]
+        responses = db["responses"]
+        
+        # Get topic and sub-topic from assignment
+        topics = db["topics"]
+        topic_data = topics.find_one({"_id": assignment["topic_id"]})
+        sub_topic = assignment.get("sub_topics", [])[0] if assignment.get("sub_topics") else None
+        
+        if not topic_data or not sub_topic:
+            return False
+            
+        # Get all questions for this topic and sub-topic
+        topic_questions = questions.find({
+            "topic": topic_data["name"],
+            "sub_topic": sub_topic
+        })
+        question_ids = [q["_id"] for q in topic_questions]
+        
+        # Get all attempted questions
+        attempted_questions = responses.distinct(
+            "question_id",
+            {
+                "assignment_id": ObjectId(assignment_id),
+                "student_id": ObjectId(student_id)
+            }
+        )
+        
+        # Check if all questions have been attempted
+        return all(q_id in attempted_questions for q_id in question_ids)
+        
+    except Exception as e:
+        print(f"Error checking completion: {str(e)}")
+        return False
 
 # UI Styling
 st.markdown("""
@@ -71,7 +120,19 @@ if current_question:
                        correct_answer = next((opt["text"] for opt in options if opt["is_correct"]), "N/A")
                        st.info(f"The correct answer is: {correct_answer}")
                    
-                   st.session_state["next_question_ready"] = True
+                   # Check if this was the last question in the sub-topic
+                   if check_subtopic_completion():
+                       st.success("🎉 Congratulations! You have completed all questions in this sub-topic!")
+                       if st.button("Return to Dashboard"):
+                           del st.session_state["current_assignment"]
+                           if "current_question_index" in st.session_state:
+                               del st.session_state["current_question_index"]
+                           if "progress_data" in st.session_state:
+                               del st.session_state["progress_data"]
+                           st.switch_page("pages/student_dashboard.py")
+                   else:
+                       st.session_state["next_question_ready"] = True
+                   
                    # Display solution if available
                    if "solution" in current_question:
                        st.markdown("### Solution")
@@ -84,7 +145,6 @@ if current_question:
                del st.session_state["current_assignment"]
                if "current_question_index" in st.session_state:
                    del st.session_state["current_question_index"]
-                       # Add this line to force a fresh data fetch
                if "progress_data" in st.session_state:
                    del st.session_state["progress_data"]
                st.switch_page("pages/student_dashboard.py")

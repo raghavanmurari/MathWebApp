@@ -36,7 +36,8 @@ def get_questions_for_assignment(assignment_id):
 
 def get_current_question():
     """
-    Returns the next unanswered question for the student.
+    Returns the next unanswered question for the student within the current sub-topic.
+    Stops showing questions when all questions in the sub-topic are attempted.
     """
     if "current_assignment" not in st.session_state or "student_id" not in st.session_state:
         return None  # No active assignment or student ID missing
@@ -48,50 +49,81 @@ def get_current_question():
     assignments_collection = db["assignments"]
     questions_collection = db["questions"]
     responses_collection = db["responses"]
+    topics_collection = db["topics"]
 
     print("\n--- DEBUGGING get_current_question() ---")
     print(f"Assignment ID: {assignment_id}")
     print(f"Student ID: {student_id}")
 
-    # Get the topic_id from the assignment
+    # Get the assignment details
     assignment = assignments_collection.find_one({"_id": ObjectId(assignment_id)})
     if not assignment:
         print("❌ ERROR: Assignment not found!")
         st.error("Assignment not found.")
         return None
 
-    topic_id = assignment.get("topic_id")
-    if not topic_id:
-        print("❌ ERROR: Assignment has no topic_id!")
-        st.error("Assignment has no topic linked.")
+    # Get the topic details
+    topic = topics_collection.find_one({"_id": assignment["topic_id"]})
+    if not topic:
+        print("❌ ERROR: Topic not found!")
+        st.error("Topic not found.")
         return None
 
-    # Fetch questions using topic_id
-    all_questions = list(questions_collection.find({"topic_id": ObjectId(topic_id)}))
-
-    print(f"Total Questions Found: {len(all_questions)}")
-
-    if not all_questions:
-        print("❌ ERROR: No questions found in DB for this topic!")
-        st.error("No questions found for this topic.")
+    # Get current sub-topic
+    current_sub_topic = assignment.get("sub_topics", [])[0] if assignment.get("sub_topics") else None
+    if not current_sub_topic:
+        print("❌ ERROR: No sub-topic found in assignment!")
+        st.error("No sub-topic found in assignment.")
         return None
 
-    # Get all answered questions and convert ObjectId to string for comparison
+    print(f"Topic: {topic['name']}, Sub-topic: {current_sub_topic}")
+
+    # Fetch questions for this specific topic and sub-topic
+    all_questions = list(questions_collection.find({
+        "topic": topic["name"],
+        "sub_topic": current_sub_topic
+    }))
+    total_questions = len(all_questions)
+
+    print(f"Total Questions in Sub-topic: {total_questions}")
+
+    if total_questions == 0:
+        print("❌ ERROR: No questions found for this sub-topic!")
+        st.error("No questions found for this sub-topic.")
+        return None
+
+    # Get question IDs for current sub-topic
+    current_subtopic_question_ids = [q["_id"] for q in all_questions]
+
+    # Get answered questions ONLY for this sub-topic
     answered_questions = responses_collection.distinct(
-        "question_id", {"assignment_id": ObjectId(assignment_id), "student_id": ObjectId(student_id)}
+        "question_id", 
+        {
+            "assignment_id": ObjectId(assignment_id), 
+            "student_id": ObjectId(student_id),
+            "question_id": {"$in": current_subtopic_question_ids}  # Only count questions from current sub-topic
+        }
     )
-    answered_questions_str = {str(q_id) for q_id in answered_questions}  # Convert ObjectId list to string set
+    answered_questions_str = {str(q_id) for q_id in answered_questions}
 
-    print(f"Answered Questions: {answered_questions_str}")
+    print(f"Answered Questions in current sub-topic: {len(answered_questions_str)}")
 
     # Filter unanswered questions
     unanswered_questions = [q for q in all_questions if str(q["_id"]) not in answered_questions_str]
+    remaining_questions = len(unanswered_questions)
 
-    print(f"Remaining Unanswered Questions: {len(unanswered_questions)}")
+    print(f"Remaining Unanswered Questions in Sub-topic: {remaining_questions}")
 
-    if not unanswered_questions:
-        print("🎉 Student has completed all questions!")
-        st.success("🎉 You've completed all questions in this assignment!")
+    if remaining_questions == 0:
+        print("🎉 Student has completed all questions in this sub-topic!")
+        st.success("🎉 Congratulations! You've completed all questions in this sub-topic!")
+        if st.button("Return to Dashboard"):
+            del st.session_state["current_assignment"]
+            if "current_question_index" in st.session_state:
+                del st.session_state["current_question_index"]
+            if "progress_data" in st.session_state:
+                del st.session_state["progress_data"]
+            st.switch_page("pages/student_dashboard.py")
         return None
 
     # Select the next unanswered question
@@ -99,10 +131,6 @@ def get_current_question():
     print(f"Next Question ID: {next_question['_id']} - {next_question['description']}")
 
     return next_question
-
-
-
-
 
 
 
