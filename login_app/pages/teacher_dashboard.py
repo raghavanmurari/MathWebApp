@@ -252,4 +252,3 @@ with tab5:
 
                 # Display using Streamlit
                 st.dataframe(df, hide_index=True)
-

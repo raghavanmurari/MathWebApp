@@ -1,6 +1,9 @@
 from database.db_connection import get_user_collection, get_question_collection, get_assignment_collection, get_db
 from bson.objectid import ObjectId
 from datetime import datetime
+from utils.progress_tracking import ProgressTracker  # ✅ Import ProgressTracker
+
+progress_tracker = ProgressTracker()  # ✅ Initialize ProgressTracker
 
 def get_all_students():
     """Fetch all students from the database."""
@@ -118,12 +121,16 @@ def get_assignment_progress(student_id):
             })
             print(f"Found {correct} correct answers")
 
+            # ✅ Fetch assignment status
+            status = progress_tracker.get_assignment_status(assignment["_id"], student_id)
+
             progress_data.append({
                 "topic": topic,
                 "sub_topic": sub_topic,
                 "total_questions": questions,
                 "attempted": attempted,
-                "correct": correct
+                "correct": correct,
+                "status": status  # ✅ Include assignment status
             })
             
         print(f"Final progress data: {progress_data}")
@@ -157,7 +164,7 @@ def resume_assignment(student_id, topic, sub_topic):
         assignment = assignments.find_one({
             "students": ObjectId(student_id),
             "topic_id": topic_doc["_id"],
-            "sub_topics": [sub_topic],  # Exact match for sub-topic
+            "sub_topics": [sub_topic],
             "status": "active"
         })
         

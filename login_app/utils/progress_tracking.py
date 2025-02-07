@@ -8,7 +8,7 @@ class ProgressTracker:
         self.responses_collection = self.db["responses"]
         self.questions_collection = self.db["questions"]
         self.assignments_collection = self.db["assignments"]
-        self.topics_collection = self.db["topics"]  # ✅ Add this line
+        self.topics_collection = self.db["topics"]
 
     def get_assignment_progress(self, assignment_id, student_id):
         """Calculate student's progress in an assignment"""
@@ -72,40 +72,33 @@ class ProgressTracker:
             question = self.questions_collection.find_one({"_id": response["question_id"]})
             if question:
                 sub_topic = question["sub_topic"]
-                topic_id = question["topic_id"]  # ✅ Get topic ID
+                topic_id = question["topic_id"]
                 
-                # ✅ Fetch total questions displayed to the student for this sub-topic
                 total_questions_count = self.questions_collection.count_documents({"sub_topic": sub_topic})
-
-                # ✅ Fetch topic name from topics collection
                 topic_doc = self.topics_collection.find_one({"_id": topic_id})
                 topic_name = topic_doc["name"] if topic_doc else "Unknown Topic"
 
-                # Initialize sub-topic entry if not exists
                 if sub_topic not in progress_data:
                     progress_data[sub_topic] = {
-                        "topic_name": topic_name,  # ✅ Store topic name
-                        "total_questions": total_questions_count,  # ✅ Store total questions count
+                        "topic_name": topic_name,
+                        "total_questions": total_questions_count,
                         "Easy": {"attempted": 0, "correct": 0},
                         "Medium": {"attempted": 0, "correct": 0},
                         "Hard": {"attempted": 0, "correct": 0}
                     }
 
-                # Update attempted count
-                difficulty = question["difficulty"]  # "Easy", "Medium", "Hard"
+                difficulty = question["difficulty"]
                 progress_data[sub_topic][difficulty]["attempted"] += 1
 
-                # Update correct count
                 if response["is_correct"]:
                     progress_data[sub_topic][difficulty]["correct"] += 1
 
-        # Convert progress data into structured format
         student_progress = []
         for sub_topic, levels in progress_data.items():
             student_progress.append({
-                "topic_name": levels["topic_name"],  # ✅ Include topic name
+                "topic_name": levels["topic_name"],
                 "sub_topic": sub_topic,
-                "total_questions": levels["total_questions"],  # ✅ Include total questions
+                "total_questions": levels["total_questions"],
                 "Easy": {
                     "attempted": levels["Easy"]["attempted"],
                     "correct": levels["Easy"]["correct"],
@@ -124,3 +117,18 @@ class ProgressTracker:
             })
 
         return student_progress
+
+    def get_assignment_status(self, assignment_id, student_id):
+        """Fetch assignment status for a student."""
+        assignment = self.assignments_collection.find_one({"_id": ObjectId(assignment_id)})
+        if not assignment:
+            return {"status": "Assignment not found"}
+
+        progress = self.get_assignment_progress(assignment_id, student_id)
+
+        if progress["percent"] == 100:
+            return {"status": "Completed"}
+        elif progress["percent"] > 0:
+            return {"status": "In Progress"}
+        else:
+            return {"status": "Not Started"}
