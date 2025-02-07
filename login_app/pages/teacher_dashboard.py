@@ -234,6 +234,7 @@ with tab5:
                     table_data.append([
                         entry.get("topic_name", "Unknown Topic"),  # ✅ Fetch Topic Name
                         entry["sub_topic"],
+                        entry["total_questions"],  # ✅ New Column: Total Questions
                         entry["Easy"]["attempted"], entry["Easy"]["correct"], get_accuracy_color(entry["Easy"]["accuracy"]),
                         entry["Medium"]["attempted"], entry["Medium"]["correct"], get_accuracy_color(entry["Medium"]["accuracy"]),
                         entry["Hard"]["attempted"], entry["Hard"]["correct"], get_accuracy_color(entry["Hard"]["accuracy"])
@@ -243,6 +244,7 @@ with tab5:
                 df = pd.DataFrame(table_data, columns=[
                     "Topic",  # ✅ New Column for Topic Name
                     "Sub-Topic", 
+                    "Total Questions",  # ✅ New Column
                     "Easy Attempted", "Easy Correct", "Easy Accuracy",
                     "Medium Attempted", "Medium Correct", "Medium Accuracy",
                     "Hard Attempted", "Hard Correct", "Hard Accuracy"

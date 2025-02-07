@@ -74,6 +74,9 @@ class ProgressTracker:
                 sub_topic = question["sub_topic"]
                 topic_id = question["topic_id"]  # ✅ Get topic ID
                 
+                # ✅ Fetch total questions displayed to the student for this sub-topic
+                total_questions_count = self.questions_collection.count_documents({"sub_topic": sub_topic})
+
                 # ✅ Fetch topic name from topics collection
                 topic_doc = self.topics_collection.find_one({"_id": topic_id})
                 topic_name = topic_doc["name"] if topic_doc else "Unknown Topic"
@@ -82,6 +85,7 @@ class ProgressTracker:
                 if sub_topic not in progress_data:
                     progress_data[sub_topic] = {
                         "topic_name": topic_name,  # ✅ Store topic name
+                        "total_questions": total_questions_count,  # ✅ Store total questions count
                         "Easy": {"attempted": 0, "correct": 0},
                         "Medium": {"attempted": 0, "correct": 0},
                         "Hard": {"attempted": 0, "correct": 0}
@@ -101,6 +105,7 @@ class ProgressTracker:
             student_progress.append({
                 "topic_name": levels["topic_name"],  # ✅ Include topic name
                 "sub_topic": sub_topic,
+                "total_questions": levels["total_questions"],  # ✅ Include total questions
                 "Easy": {
                     "attempted": levels["Easy"]["attempted"],
                     "correct": levels["Easy"]["correct"],
