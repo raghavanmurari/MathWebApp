@@ -1,0 +1,18 @@
+[theme]
+base="light"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+runOnSave = true
+
+[ui]
+hideTopBar = true
+hideSidebarNav = true
+
+[client]
+showSidebarNavigation = false
+toolbarMode = "minimal"
+# Add this line
+layout = "centered"

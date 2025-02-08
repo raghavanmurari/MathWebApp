@@ -3,11 +3,10 @@ import time
 import json
 import os
 from services.auth_service import authenticate_user
-from services.reset_service import save_reset_code, verify_reset_code, update_password  # ✅ New imports
+from services.reset_service import save_reset_code, verify_reset_code, update_password
 
-SESSION_FILE = "session_state.json"  # Persistent session storage
+SESSION_FILE = "session_state.json"
 
-# ✅ Function to load session state
 def load_session():
     if os.path.exists(SESSION_FILE):
         with open(SESSION_FILE, "r") as f:
@@ -17,19 +16,12 @@ def load_session():
             st.session_state.user_email = session_data.get("user_email")
             st.session_state.remember_me = session_data.get("remember_me", False)
 
-# ✅ Load session (if "Remember Me" was enabled)
 load_session()
-
-# ✅ Hide Sidebar Immediately
-st.set_page_config(page_title="Math Web App - Login", page_icon="🔢", layout="centered", initial_sidebar_state="collapsed")
 
 st.title("🔢 Math Web App - Login")
 
-# ✅ Standard Login Form
 email = st.text_input("Email", placeholder="Enter your email (e.g., user@example.com)")
 password = st.text_input("Password", type="password", placeholder="Enter your password")
-
-# ✅ "Remember Me" Checkbox
 remember_me = st.checkbox("Remember Me", value=st.session_state.remember_me)
 
 # Validate Email Format
@@ -52,7 +44,6 @@ if login_btn:
             time.sleep(2)
             role = authenticate_user(email, password)
 
-
             if role == "disabled":
                 st.error("This account has been disabled. Please contact your administrator.")
             elif role:
@@ -71,7 +62,6 @@ if login_btn:
                         }, f)
 
                 st.success(f"Login successful! Redirecting to {role} dashboard...")
-
 
                 if role == "student":
                     st.switch_page("pages/student_dashboard.py")
