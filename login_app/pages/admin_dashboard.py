@@ -91,7 +91,7 @@ with tab1:
         parent_email = school = grade = None
 
         if role == "student":
-            parent_email = st.text_input("Parent Email (Optional)")
+            parent_email = st.text_input("Parent Email")
             grade = st.selectbox("Grade", [str(i) for i in range(6, 13)])
             school = st.text_input("School Name")
 

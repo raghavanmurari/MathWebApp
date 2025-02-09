@@ -43,13 +43,25 @@ st.markdown("""
     .large-text { font-size: 24px !important; margin-bottom: 20px; }
     .question-text { font-size: 20px !important; margin-bottom: 15px; }
     .stRadio [role=radiogroup] label { font-size: 18px !important; margin: 10px 0; }
-    .block-container { padding-top: 2rem; max-width: 1200px; }
+    .block-container { 
+        min-height: 100vh !important;
+        padding-top: 70px !important;
+        padding-bottom: 0px !important;
+        max-width: 1200px;
+    }
     .option-feedback { display: inline-flex; align-items: center; margin-left: 10px; }
     .stRadio [role=radiogroup] { position: relative; }
+    div.stButton > button {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 col1, col2 = st.columns([0.7, 0.3])
+
+
 with col1:
     st.title(f"Welcome, {student_name}! 👋")
 with col2:

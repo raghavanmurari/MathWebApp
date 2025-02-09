@@ -40,7 +40,7 @@ def display_students(search_query=""):
 
         df.insert(0, "S.No", range(1, len(df) + 1))  # Add S.No Column
         st.dataframe(df.set_index("S.No"), use_container_width=True)
-
+        
     except Exception as e:
         st.error(f"Error: {str(e)}")
 

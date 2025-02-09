@@ -26,6 +26,11 @@ st.markdown(
         .stTabs {margin-top: 1rem;}
         .stTabs [data-baseweb="tab-list"] {gap: 2rem;}
         .stTabs [data-baseweb="tab"] {height: 50px; padding: 0 20px; background-color: white; border-radius: 5px;}
+        button[kind="secondary"] {
+            margin-top: 3rem !important;
+            position: relative;
+            top: 20px;
+        }
     </style>
     """,
     unsafe_allow_html=True
@@ -36,9 +41,27 @@ load_session()
 if not st.session_state.logged_in:
     st.switch_page("pages/login_page.py")
 
+# col1, col2 = st.columns([0.9, 0.1])
+# with col1:
+#     st.title("🎓 Teacher Dashboard")
+# with col2:
+#     if st.button("Logout", help="Click to logout"):
+#         clear_session()
+#         st.switch_page("pages/login_page.py")
+
+# Add this after load_session()
+def get_teacher_name():
+    if "user_id" in st.session_state:
+        users_collection = get_user_collection()
+        teacher = users_collection.find_one({"_id": ObjectId(st.session_state["user_id"])})
+        return teacher.get("name", "Teacher") if teacher else "Teacher"
+    return "Teacher"
+
+# Replace the title section with:
 col1, col2 = st.columns([0.9, 0.1])
 with col1:
-    st.title("🎓 Teacher Dashboard")
+    teacher_name = get_teacher_name()
+    st.title(f"Welcome, {teacher_name} 👋")
 with col2:
     if st.button("Logout", help="Click to logout"):
         clear_session()
@@ -73,13 +96,14 @@ def get_accuracy_color(accuracy):
 
 with tab1:
     st.header("Welcome to the Teacher Dashboard")
-    col1, col2, col3 = st.columns(3)
+    # col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         st.metric(label="Total Students", value=total_students)
     with col2:
         st.metric(label="Active Assignments", value=active_assignments)
-    with col3:
-        st.metric(label="Average Score", value="85%", delta="+5%")  # Placeholder, update later
+    # with col3:
+    #     st.metric(label="Average Score", value="85%", delta="+5%")  # Placeholder, update later
 
 with tab2:
     st.header("Student Management")
@@ -161,10 +185,11 @@ with tab4:
 
                 assignment_data.append({
                     "Sub-Topics": sub_topics,
+                    # "Created": assignment.get("creation_date", "No date").strftime("%Y-%m-%d %H:%M") if assignment.get("creation_date") else "No date",  # Add this line
                     "Deadline": deadline,
                     "Status": status,
                     "Assigned Students": assigned_students,
-                    "Student User IDs": assigned_student_ids  # ✅ Display student user IDs
+                    # "Student User IDs": assigned_student_ids  # ✅ Display student user IDs
                 })
 
             if assignment_data:
@@ -173,6 +198,7 @@ with tab4:
                     use_container_width=True,
                     column_config={
                         "Sub-Topics": st.column_config.TextColumn("Sub-Topics"),
+                        # "Created": st.column_config.TextColumn("Created Date"),  # Add this line
                         "Deadline": st.column_config.TextColumn("Deadline"),
                         "Status": st.column_config.TextColumn("Status", width="small"),
                         "Assigned Students": st.column_config.TextColumn("Assigned Students"),
