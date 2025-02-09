@@ -13,6 +13,15 @@ if st.session_state.get("user_role") != "student":
    st.error("Unauthorized Access! Redirecting...")
    st.switch_page("pages/login_page.py")
 
+# Single line header with center alignment
+topic = st.session_state.get('current_topic', 'N/A')
+subtopic = st.session_state.get('current_subtopic', 'N/A')
+st.markdown(f"<h4 style='text-align: center;'>{topic} - {subtopic}</h4>", unsafe_allow_html=True)
+
+
+# Add a visual separator
+# st.markdown("---")
+
 # Verify current assignment exists
 if "current_assignment" not in st.session_state:
    st.error("No active assignment selected.")

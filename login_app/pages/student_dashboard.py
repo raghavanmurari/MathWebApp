@@ -40,18 +40,8 @@ student_name = user.get("name", "Student")
 # UI Styling
 st.markdown("""
     <style>
-    .large-text { font-size: 24px !important; margin-bottom: 20px; }
-    .question-text { font-size: 20px !important; margin-bottom: 15px; }
-    .stRadio [role=radiogroup] label { font-size: 18px !important; margin: 10px 0; }
-    .block-container { 
-        min-height: 100vh !important;
-        padding-top: 70px !important;
-        padding-bottom: 0px !important;
-        max-width: 1200px;
-    }
-    .option-feedback { display: inline-flex; align-items: center; margin-left: 10px; }
-    .stRadio [role=radiogroup] { position: relative; }
-    div.stButton > button {
+    /* Other styles remain the same */
+    .logout-button > button {
         position: fixed !important;
         top: 20px !important;
         right: 20px !important;
@@ -88,15 +78,20 @@ if progress_data:
         cols = st.columns([1, 2, 1, 1, 1, 1])
         cols[0].write(data["topic"])
         cols[1].write(data["sub_topic"])
-        cols[2].write(data["total_questions"])
-        cols[3].write(data["attempted"])
-        cols[4].write(data["correct"])
+        cols[2].markdown(f"**{data['total_questions']}**")  # Bold numbers
+        cols[3].markdown(f"**{data['attempted']}**")        # Bold numbers
+        cols[4].markdown(f"**{data['correct']}**")          # Bold numbers
+        # cols[2].write(data["total_questions"])
+        # cols[3].write(data["attempted"])
+        # cols[4].write(data["correct"])
         st.session_state["student_id"] = student_id
         if cols[5].button("Resume", key=f"resume_{idx}"):
             assignment_id = resume_assignment(student_id, data["topic"], data["sub_topic"])
             if assignment_id:
                 st.session_state["current_assignment"] = assignment_id
                 st.session_state["current_question_index"] = 0
+                st.session_state["current_topic"] = data["topic"]
+                st.session_state["current_subtopic"] = data["sub_topic"]
                 st.switch_page("pages/question_page.py")
 else:
     st.info("No active assignments available.")
