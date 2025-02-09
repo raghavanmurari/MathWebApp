@@ -13,7 +13,7 @@ import pandas as pd
 st.set_page_config(
     page_title="Teacher Dashboard",
     page_icon="🎓",
-    layout="wide",
+    layout="centered",
     initial_sidebar_state="collapsed"  # ✅ Hide sidebar
 )
 

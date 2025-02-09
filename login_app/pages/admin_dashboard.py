@@ -21,7 +21,7 @@ db = client["adaptive_math_db"]
 st.set_page_config(
    page_title="Math Web App - Admin Dashboard", 
    page_icon="🔢", 
-   layout="wide",
+   layout="centered",
 )
 
 # Remove sidebar completely
@@ -62,7 +62,8 @@ def logout():
 
 # Display dashboard title with logout button (Only for Admins)
 if st.session_state.user_role == "admin":
-    col1, col2 = st.columns([0.9, 0.1])
+    # col1, col2 = st.columns([0.9, 0.1])
+    col1, col2 = st.columns([0.85, 0.15])
     with col1:
         st.title("Admin Dashboard")
     with col2:
