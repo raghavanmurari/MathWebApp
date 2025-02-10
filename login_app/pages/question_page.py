@@ -18,14 +18,16 @@ topic = st.session_state.get('current_topic', 'N/A')
 subtopic = st.session_state.get('current_subtopic', 'N/A')
 st.markdown(f"<h4 style='text-align: center;'>{topic} - {subtopic}</h4>", unsafe_allow_html=True)
 
-
-# Add a visual separator
-# st.markdown("---")
-
 # Verify current assignment exists
 if "current_assignment" not in st.session_state:
    st.error("No active assignment selected.")
    st.switch_page("pages/student_dashboard.py")
+
+def convert_latex(text):
+    """Convert Excel LaTeX format to Streamlit-compatible format"""
+    if text and isinstance(text, str):
+        return text.replace('\\(', '$').replace('\\)', '$')
+    return text
 
 def check_subtopic_completion():
     """Check if all questions in the current sub-topic have been attempted"""
@@ -88,16 +90,30 @@ st.markdown("""
 # Display Question
 current_question = get_current_question()
 if current_question:
-   st.markdown('<p class="large-text">Question</p>', unsafe_allow_html=True)
-   st.markdown(f'<p class="question-text">{current_question["description"]}</p>', unsafe_allow_html=True)
+#    st.markdown('<p class="large-text">Question</p>', unsafe_allow_html=True)
+    # Modified code that will fix LaTeX rendering:
+   st.markdown("## Question")  # Using markdown header instead of HTML
+   question_text = convert_latex(current_question["description"])
+   st.markdown(question_text)  # Remove HTML wrapping to allow LaTeX to render
    
+   # The styling can be moved to the CSS section:
+   st.markdown("""
+        <style>
+        .large-text { font-size: 24px !important; margin-bottom: 20px; }
+        /* Remove question-text class since we're using native markdown */
+        .stMarkdown { font-size: 20px !important; margin-bottom: 15px; }
+        .stRadio [role=radiogroup] label { font-size: 18px !important; margin: 10px 0; }
+        </style>
+    """, unsafe_allow_html=True)
+
    options = current_question.get("options", [])
    if options:
        display_values = []
        option_mapping = {}
 
        for option in options:
-           display_text = option.get('text', '').replace('\\(', '').replace('\\)', '')
+           # Convert LaTeX in option text
+           display_text = convert_latex(option.get('text', ''))
            display_values.append(display_text)
            option_mapping[display_text] = option
 
@@ -127,6 +143,8 @@ if current_question:
                    else:
                        st.error("❌ Incorrect!")
                        correct_answer = next((opt["text"] for opt in options if opt["is_correct"]), "N/A")
+                       # Convert LaTeX in correct answer
+                       correct_answer = convert_latex(correct_answer)
                        st.info(f"The correct answer is: {correct_answer}")
                    
                    # Check if this was the last question in the sub-topic
@@ -145,10 +163,14 @@ if current_question:
                    # Display solution if available
                    if "solution" in current_question:
                        st.markdown("### Solution")
-                       st.markdown(current_question["solution"])
+                       # Convert LaTeX in solution
+                       solution_text = convert_latex(current_question["solution"])
+                       st.markdown(solution_text)
                    elif "explanation" in current_question:
                        st.markdown("### Explanation")
-                       st.markdown(current_question["explanation"])
+                       # Convert LaTeX in explanation
+                       explanation_text = convert_latex(current_question["explanation"])
+                       st.markdown(explanation_text)
        with col2:
            if st.button("Back to Dashboard", use_container_width=True):
                del st.session_state["current_assignment"]
