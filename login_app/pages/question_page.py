@@ -13,7 +13,6 @@ if st.session_state.get("user_role") != "student":
    st.error("Unauthorized Access! Redirecting...")
    st.switch_page("pages/login_page.py")
 
-# Get total questions for the current assignment
 def get_total_questions():
     try:
         db = get_db()
@@ -41,12 +40,11 @@ def get_attempted_count():
             "student_id": ObjectId(student_id)
         })
         
-        return attempted_count + 1  # Add 1 for the current question
+        return attempted_count + 1
     except Exception as e:
         print(f"Error getting attempted count: {str(e)}")
         return 1
 
-# Verify current assignment exists
 if "current_assignment" not in st.session_state:
    st.error("No active assignment selected.")
    st.switch_page("pages/student_dashboard.py")
@@ -100,6 +98,12 @@ def check_subtopic_completion():
         print(f"Error checking completion: {str(e)}")
         return False
 
+# Initialize session states
+if "submitted_answer" not in st.session_state:
+    st.session_state.submitted_answer = False
+if "question_answered" not in st.session_state:
+    st.session_state.question_answered = False
+
 # UI Styling
 st.markdown("""
     <style>
@@ -125,13 +129,8 @@ st.markdown(f"<h4 style='text-align: center;'>{topic} - {subtopic}</h4>", unsafe
 
 # Get current question number and total
 total_questions = get_total_questions()
-current_question_num = get_attempted_count()  # Changed this line to use the new function
+current_question_num = get_attempted_count()
 
-# Initialize answered state if not exists
-if "question_answered" not in st.session_state:
-    st.session_state.question_answered = False
-
-# Display Question
 current_question = get_current_question()
 if current_question:
     # Progress bar
@@ -150,10 +149,12 @@ if current_question:
                 "Medium": "orange",
                 "Hard": "red"
             }.get(difficulty, "blue")
-            st.markdown(f"**Difficulty:** <span style='color: {difficulty_color}'>{difficulty}</span>", 
-                       unsafe_allow_html=True)
+            st.markdown(
+                f"**Difficulty:** <span style='color: {difficulty_color}'>{difficulty}</span>", 
+                unsafe_allow_html=True
+            )
 
-    # Question display with original LaTeX handling
+    # Question display
     st.markdown("## Question")
     question_text = convert_latex(current_question["description"])
     st.markdown(question_text)
@@ -163,8 +164,19 @@ if current_question:
         display_values = []
         option_mapping = {}
 
+        # Create unique key for this question
+        question_key = f"selected_option_{str(current_question['_id'])}"
+
+        # If user has submitted, show the ✅ or ❌ next to the options
         for option in options:
             display_text = convert_latex(option.get('text', ''))
+            if st.session_state.submitted_answer:
+                # If this option is correct, add a check
+                if option.get("is_correct"):
+                    display_text += " ✅"
+                # If this option is the user's chosen one but not correct, add a cross
+                elif question_key in st.session_state and display_text == st.session_state[question_key]:
+                    display_text += " ❌"
             display_values.append(display_text)
             option_mapping[display_text] = option
 
@@ -172,54 +184,48 @@ if current_question:
             "Choose your answer:",
             options=display_values,
             label_visibility="visible",
-            key="selected_option",
+            key=question_key,
             index=None
         )
 
-        # Button layout
         col1, col2, col3 = st.columns([1, 1, 1])
         
+        # 1) Submit: Mark the question as answered and trigger a refresh
         with col1:
             if st.button("Submit", use_container_width=True, disabled=st.session_state.question_answered):
                 if selected:
                     st.session_state.question_answered = True
-                    selected_option = option_mapping[selected]
-                    is_correct = selected_option.get("is_correct", False)
+                    st.session_state.submitted_answer = True
                     
+                    # Save the chosen option so we can store it on "Next"
+                    selected_option = option_mapping[selected]
+                    st.session_state.last_selected_option = selected_option
+                    
+                    # Immediately re-run so that the UI updates with checkmarks
+                    st.rerun()
+
+        # 2) Next: store answer in DB, load next question
+        with col2:
+            if st.button("Next", use_container_width=True, disabled=not st.session_state.question_answered):
+                if "last_selected_option" in st.session_state:
                     update_student_response(
                         assignment_id=st.session_state["current_assignment"],
                         student_id=st.session_state.get("student_id"),
                         question_id=current_question["_id"],
-                        selected_answer=selected_option
+                        selected_answer=st.session_state.last_selected_option
                     )
+                    del st.session_state.last_selected_option
 
-                    if is_correct:
-                        st.success("✅ Correct!")
-                    else:
-                        st.error("❌ Incorrect!")
-                        correct_answer = next((opt["text"] for opt in options if opt["is_correct"]), "N/A")
-                        correct_answer = convert_latex(correct_answer)
-                        st.markdown(f"The correct answer is: {correct_answer}")
-                    
-                    if check_subtopic_completion():
-                        st.success("🎉 Congratulations! You have completed all questions in this sub-topic!")
-                    
-                    # Display solution/explanation
-                    if "solution" in current_question:
-                        st.markdown("### Solution")
-                        solution_text = convert_latex(current_question["solution"])
-                        st.markdown(solution_text)
-                    elif "explanation" in current_question:
-                        st.markdown("### Explanation")
-                        explanation_text = convert_latex(current_question["explanation"])
-                        st.markdown(explanation_text)
-        
-        with col2:
-            if st.button("Next", use_container_width=True, disabled=not st.session_state.question_answered):
                 st.session_state.current_question_index += 1
                 st.session_state.question_answered = False
+                st.session_state.submitted_answer = False
+                
+                # Clear the chosen option
+                if question_key in st.session_state:
+                    del st.session_state[question_key]
+                
                 st.rerun()
-        
+
         with col3:
             if st.button("Back to Dashboard", use_container_width=True):
                 del st.session_state["current_assignment"]
@@ -228,3 +234,18 @@ if current_question:
                 if "progress_data" in st.session_state:
                     del st.session_state["progress_data"]
                 st.switch_page("pages/student_dashboard.py")
+
+        # If the user has submitted an answer, show solution/explanation now
+        if st.session_state.submitted_answer:
+            if check_subtopic_completion():
+                st.success("🎉 Congratulations! You have completed all questions in this sub-topic!")
+
+            # Show solution or explanation
+            if "solution" in current_question:
+                st.markdown("### Solution")
+                solution_text = convert_latex(current_question["solution"])
+                st.markdown(solution_text)
+            elif "explanation" in current_question:
+                st.markdown("### Explanation")
+                explanation_text = convert_latex(current_question["explanation"])
+                st.markdown(explanation_text)
