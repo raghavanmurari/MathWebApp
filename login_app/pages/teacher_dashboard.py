@@ -147,8 +147,13 @@ with tab4:
                             topic_name = topic_doc.get("name", "Unknown Topic")
                     except Exception as e:
                         st.warning(f"Error fetching topic name: {str(e)}")
+                # sub_topics = ", ".join(assignment.get("sub_topics", ["No sub-topics"]))
+                # Instead of joining them, just get the sub_topics list
+                subtopics_list = assignment.get("sub_topics", ["No sub-topics"])
+                for single_subtopic in subtopics_list:
+                    created_str = assignment.get("created_at").strftime("%Y-%m-%d %H:%M") if assignment.get("created_at") else "No date"
+                    deadline_str = assignment.get("deadline").strftime("%Y-%m-%d %H:%M") if assignment.get("deadline") else "No deadline"
 
-                sub_topics = ", ".join(assignment.get("sub_topics", ["No sub-topics"]))
                 deadline = assignment.get("deadline", "No deadline").strftime("%Y-%m-%d %H:%M") if assignment.get("deadline") else "No deadline"
                 status = assignment.get("status", "Unknown")
 
@@ -184,11 +189,12 @@ with tab4:
                 assigned_student_ids = ", ".join(student_user_ids) if student_user_ids else "No students assigned"
 
                 assignment_data.append({
-                    "Sub-Topics": sub_topics,
-                    # "Created": assignment.get("creation_date", "No date").strftime("%Y-%m-%d %H:%M") if assignment.get("creation_date") else "No date",  # Add this line
+                    "Topic": topic_name,  # Add Topic as first column
+                    "Sub-Topics": single_subtopic,
+                    "Created": assignment.get("created_at").strftime("%Y-%m-%d %H:%M") if assignment.get("created_at") else "No date",
                     "Deadline": deadline,
                     "Status": status,
-                    "Assigned Students": assigned_students,
+                    "Assigned Students": assigned_students
                     # "Student User IDs": assigned_student_ids  # ✅ Display student user IDs
                 })
 
@@ -197,12 +203,13 @@ with tab4:
                     assignment_data,
                     use_container_width=True,
                     column_config={
+
                         "Sub-Topics": st.column_config.TextColumn("Sub-Topics"),
-                        # "Created": st.column_config.TextColumn("Created Date"),  # Add this line
+                        "Created": st.column_config.TextColumn("Created Date"),  # Add this line
                         "Deadline": st.column_config.TextColumn("Deadline"),
                         "Status": st.column_config.TextColumn("Status", width="small"),
-                        "Assigned Students": st.column_config.TextColumn("Assigned Students"),
-                        "Student User IDs": st.column_config.TextColumn("Student User IDs")  # ✅ New Column
+                        "Assigned Students": st.column_config.TextColumn("Assigned Students")
+                        # "Student User IDs": st.column_config.TextColumn("Student User IDs")  # ✅ New Column
                     }
                 )
             else:
@@ -227,13 +234,15 @@ with tab4:
 with tab5:
     st.header("📊 Student Progress")
 
-    # ✅ Fetch students for dropdown
+    # Fetch required collections
     db = get_db()
     students_collection = db["students"]
-    users_collection = db["users"]  # ✅ Fetch users collection
+    users_collection = db["users"]
+    assignments_collection = db["assignments"]
+    responses_collection = db["responses"]
+    topics_collection = db["topics"]
 
-    progress_tracker = ProgressTracker()
-
+    # Create students dictionary for dropdown
     students_dict = {}
     for student in students_collection.find({}):
         user_doc = users_collection.find_one({"_id": student["user_id"]})
@@ -243,50 +252,142 @@ with tab5:
     if not students_dict:
         st.warning("No students found.")
     else:
-        student_id = st.selectbox("Select a Student:", options=list(students_dict.keys()), format_func=lambda x: students_dict[x])
+        # Create two columns for filters
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            student_id = st.selectbox(
+                "Select a Student:", 
+                options=list(students_dict.keys()), 
+                format_func=lambda x: students_dict[x]
+            )
+
+        # Get all topics and subtopics from active assignments
+        topic_subtopic_options = ["All Topics"]
+        topic_subtopic_map = {}  # To store the mapping of display string to actual values
+        
+        if student_id:
+            active_assignments = list(assignments_collection.find({
+                "students": ObjectId(student_id),
+                "status": "active"
+            }))
+            
+            for assignment in active_assignments:
+                topic_id = assignment.get("topic_id")
+                if topic_id:
+                    topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
+                    if topic_doc:
+                        topic_name = topic_doc.get("name")
+                        for subtopic in assignment.get("sub_topics", []):
+                            display_string = f"{topic_name} - {subtopic}"
+                            topic_subtopic_options.append(display_string)
+                            topic_subtopic_map[display_string] = {
+                                'topic': topic_name,
+                                'subtopic': subtopic
+                            }
+
+        with col2:
+            if len(topic_subtopic_options) > 1:
+                selected_topic_subtopic = st.selectbox(
+                    "Select Topic - Subtopic:",
+                    options=topic_subtopic_options
+                )
+            else:
+                st.warning("No topics found for this student.")
+                selected_topic_subtopic = None
 
         if student_id:
-            st.subheader(f"Progress for {students_dict[student_id]}")
+            student_name = students_dict[student_id]
+            st.subheader(f"Progress for {student_name}")
 
-            # ✅ Fetch student progress data
-            progress_data = progress_tracker.get_subtopic_progress(ObjectId(student_id))
-
-            if not progress_data:
-                st.warning("No progress data available for this student.")
+            if not active_assignments:
+                st.warning("No active assignments for this student.")
             else:
-                st.write("### Sub-topic Wise Performance")
+                st.write("### Performance Analysis")
                 table_data = []
-                for entry in progress_data:
-                    table_data.append([
-                        entry.get("topic_name", "Unknown Topic"),  # ✅ Fetch Topic Name
-                        entry["sub_topic"],
-                        # entry["total_questions"],  # ✅ New Column: Total Questions
-                        # entry["Easy"]["attempted"], 
-                        # entry["Easy"]["correct"], 
-                        get_accuracy_color(entry["Easy"]["accuracy"]),
-                        # entry["Medium"]["attempted"], 
-                        # entry["Medium"]["correct"], 
-                        get_accuracy_color(entry["Medium"]["accuracy"]),
-                        # entry["Hard"]["attempted"], 
-                        # entry["Hard"]["correct"], 
-                        get_accuracy_color(entry["Hard"]["accuracy"])
+                
+                for assignment in active_assignments:
+                    # Get topic name
+                    topic_id = assignment.get("topic_id")
+                    topic_name = "Unknown Topic"
+                    if topic_id:
+                        topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
+                        if topic_doc:
+                            topic_name = topic_doc.get("name")
+
+                    # Get responses for this assignment
+                    responses = list(responses_collection.find({
+                        "student_id": ObjectId(student_id),
+                        "assignment_id": assignment["_id"]
+                    }))
+
+                    questions_collection = db["questions"]
+                    questions = {
+                        str(q["_id"]): q for q in questions_collection.find({
+                            "_id": {"$in": [r["question_id"] for r in responses]}
+                        })
+                    }
+
+                    # Calculate accuracies for each difficulty level
+                    for sub_topic in assignment.get("sub_topics", []):
+                        # Skip if topic-subtopic filter is applied and doesn't match
+                        current_combo = f"{topic_name} - {sub_topic}"
+                        if selected_topic_subtopic != "All Topics" and current_combo != selected_topic_subtopic:
+                            continue
+
+                        # Filter responses by subtopic
+                        subtopic_responses = [r for r in responses 
+                            if str(r["question_id"]) in questions 
+                            and questions[str(r["question_id"])].get("sub_topic") == sub_topic]
+
+                        # Calculate accuracies for each difficulty level
+                        for difficulty in ["Easy", "Medium", "Hard"]:
+                            difficulty_responses = [r for r in subtopic_responses 
+                                if questions[str(r["question_id"])].get("difficulty") == difficulty]
+                            correct = sum(1 for r in difficulty_responses if r.get("is_correct"))
+                            total = len(difficulty_responses)
+                            accuracy = (correct / total * 100) if total > 0 else 0
+                            
+                            if difficulty == "Easy":
+                                easy_accuracy = accuracy
+                            elif difficulty == "Medium":
+                                medium_accuracy = accuracy
+                            else:
+                                hard_accuracy = accuracy
+
+                        # Count practice days
+                        practice_dates = {r.get("submission_date").date() for r in subtopic_responses if r.get("submission_date")}
+                        num_practice_days = len(practice_dates)
+
+                        # Format dates
+                        created_str = assignment.get("created_at").strftime("%Y-%m-%d") if assignment.get("created_at") else "No date"
+                        deadline_str = assignment.get("deadline").strftime("%Y-%m-%d") if assignment.get("deadline") else "No deadline"
+
+                        table_data.append([
+                            topic_name,
+                            sub_topic,
+                            created_str,
+                            deadline_str,
+                            num_practice_days,
+                            get_accuracy_color(easy_accuracy),
+                            get_accuracy_color(medium_accuracy),
+                            get_accuracy_color(hard_accuracy)
+                        ])
+
+                if table_data:
+                    # Convert to DataFrame and display
+                    df = pd.DataFrame(table_data, columns=[
+                        "Topic",
+                        "Sub-Topic",
+                        "Created Date",
+                        "Deadline",
+                        "Days Practiced",
+                        "Easy Accuracy",
+                        "Medium Accuracy",
+                        "Hard Accuracy"
                     ])
 
-                # Convert table data into a Pandas DataFrame
-                df = pd.DataFrame(table_data, columns=[
-                    "Topic",  # ✅ New Column for Topic Name
-                    "Sub-Topic", 
-                    # "Total Questions",  # ✅ New Column
-                    # "Easy Attempted", 
-                    # "Easy Correct", 
-                    "Easy Accuracy",
-                    # "Medium Attempted", 
-                    # "Medium Correct", 
-                    "Medium Accuracy",
-                    # "Hard Attempted", 
-                    # "Hard Correct", 
-                    "Hard Accuracy"
-                ])
-
-                # Display using Streamlit
-                st.dataframe(df, hide_index=True)
+                    # Display using Streamlit
+                    st.dataframe(df, hide_index=True)
+                else:
+                    st.info("No data available for the selected filters.")

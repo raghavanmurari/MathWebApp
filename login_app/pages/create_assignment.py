@@ -119,26 +119,60 @@ def show_create_assignment():
             if st.button("Create Assignment", type="primary"):
                 assignments_collection = db['assignments']
                 
-                # Create new assignment
-                new_assignment = {
-                    "teacher_id": ObjectId(st.session_state["user_id"]),
-                    "students": [ObjectId(s_id) for s_id in selected_students],
-                    "topic_id": ObjectId(st.session_state['topic_id']),
-                    "sub_topics": st.session_state['sub_topics'],
-                    "deadline": deadline,
-                    "status": "active",
-                    "created_at": datetime.now()
-                }
-                
-                # Insert assignment
-                assignments_collection.insert_one(new_assignment)
-                st.success("Assignment created successfully!")
-                
-                # Clear create assignment state
-                for key in ['create_step', 'topic_id', 'sub_topics', 'show_create']:
-                    if key in st.session_state:
-                        del st.session_state[key]
-                st.rerun()
+                # Duplicate check: ensure one sub-topic per student
+                duplicate_found = False
+                duplicates = []
+
+                # We'll need these collections here:
+                students_collection = db['students']
+                users_collection = db['users']
+
+                for s_id in selected_students:
+                    # 1. Look up the student's name right now:
+                    student_doc = students_collection.find_one({"_id": ObjectId(s_id)})
+                    if student_doc:
+                        user_doc = users_collection.find_one({"_id": student_doc["user_id"]})
+                        student_name = user_doc["name"] if user_doc else "Unknown"
+                    else:
+                        student_name = "Unknown"
+                    
+                    # 2. For each sub-topic, see if there’s a duplicate:
+                    for sub_topic in st.session_state['sub_topics']:
+                        existing = assignments_collection.find_one({
+                            "teacher_id": ObjectId(st.session_state["user_id"]),
+                            "topic_id": ObjectId(st.session_state['topic_id']),
+                            "sub_topics": sub_topic,
+                            "students": ObjectId(s_id)
+                        })
+                        if existing:
+                            duplicate_found = True
+                            duplicates.append(f"{student_name} already has the sub-topic '{sub_topic}' assigned")
+
+                # If we found any duplicates, display them
+                if duplicate_found:
+                    st.warning("The following students already have this sub-topic assigned: " + ", ".join(duplicates))
+                else:
+                    # Create new assignment
+                    new_assignment = {
+                        "teacher_id": ObjectId(st.session_state["user_id"]),
+                        "students": [ObjectId(s_id) for s_id in selected_students],
+                        "topic_id": ObjectId(st.session_state['topic_id']),
+                        "sub_topics": st.session_state['sub_topics'],
+                        "deadline": deadline,
+                        "status": "active",
+                        "created_at": datetime.now()
+                    }
+                    
+                    # Insert assignment
+                    assignments_collection.insert_one(new_assignment)
+                    st.success("Assignment created successfully!")
+                    
+                    # Clear create assignment state
+                    for key in ['create_step', 'topic_id', 'sub_topics', 'show_create']:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.rerun()
+
         else:
             st.warning("Please select at least one student")
 
