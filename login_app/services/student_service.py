@@ -71,7 +71,10 @@ def get_assignment_progress(student_id):
                 
             topic = topic_data.get("name")
             sub_topic = assignment.get("sub_topics", [])[0] if assignment.get("sub_topics") else None
-            
+            # deadline = assignment.get("deadline", "No deadline set")  # ✅ Fetch deadline
+            deadline = assignment.get("deadline", "No deadline set")
+            deadline = deadline.strftime("%Y-%m-%d") if isinstance(deadline, datetime) else deadline
+
             if not topic or not sub_topic:
                 print(f"Missing topic ({topic}) or sub_topic ({sub_topic})")
                 continue
@@ -130,7 +133,8 @@ def get_assignment_progress(student_id):
                 "total_questions": questions,
                 "attempted": attempted,
                 "correct": correct,
-                "status": status  # ✅ Include assignment status
+                "status": status,  # ✅ Include assignment status
+                "deadline": deadline  # ✅ Include deadline
             })
             
         print(f"Final progress data: {progress_data}")

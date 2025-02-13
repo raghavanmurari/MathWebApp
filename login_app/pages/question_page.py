@@ -110,11 +110,14 @@ st.markdown("""
     .large-text { font-size: 24px !important; margin-bottom: 20px; }
     .stMarkdown { font-size: 20px !important; margin-bottom: 15px; }
     .stRadio [role=radiogroup] {
-        padding: 10px;
+        padding: 20px;  /* increased from 10px to 20px */
         background-color: #f0f2f6;
         border-radius: 10px;
         font-size: 18px !important;
         margin: 10px 0;
+        gap: 15px;  /* This adds space between radio items */
+        display: flex;
+        flex-direction: column;
     }
     .stButton button {
         width: 100%;
@@ -155,9 +158,9 @@ if current_question:
             )
 
     # Question display
-    st.markdown("## Question")
+    st.markdown("### Question")
     question_text = convert_latex(current_question["description"])
-    st.markdown(question_text)
+    st.markdown(question_text)  # Removed extra spacing
     
     options = current_question.get("options", [])
     if options:
@@ -181,7 +184,7 @@ if current_question:
             option_mapping[display_text] = option
 
         selected = st.radio(
-            "Choose your answer:",
+            "",# "Choose your answer:",
             options=display_values,
             label_visibility="visible",
             key=question_key,

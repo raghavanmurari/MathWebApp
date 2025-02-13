@@ -74,14 +74,19 @@ if progress_data:
             
             col1, col2 = st.columns([0.7, 0.3])
             with col1:
-                # st.markdown(f"**{data['topic']}** - {data['sub_topic']}")
                 st.markdown(f"<h4 style='color:#2E3A87; font-weight:bold;'>{data['topic']}</h4>", unsafe_allow_html=True)
                 st.markdown(f"<h5 style='color:#4A5EA8; font-weight:semi-bold;'>{data['sub_topic']}</h5>", unsafe_allow_html=True)
-                # st.markdown(f"Total Questions: **{data['total_questions']}**")
-                # st.markdown(f"Attempted: **{data['attempted']}** | Correct: **{data['correct']}**")
-                st.markdown(f"<p style='font-size:16px;'><b>Total Questions:</b> {data['total_questions']} &nbsp;&nbsp;|&nbsp;&nbsp; "
-                            f"<b>Attempted:</b> {data['attempted']} &nbsp;&nbsp;|&nbsp;&nbsp; "
-                            f"<b>Correct:</b> {data['correct']}</p>", unsafe_allow_html=True)
+                # st.markdown(f"<p style='font-size:16px;'><b>Total Questions:</b> {data['total_questions']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                #             f"<b>Attempted:</b> {data['attempted']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                #             f"<b>Correct:</b> {data['correct']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                #             f"<b>Deadline:</b> {data.get('deadline', 'No deadline set')}</p>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<p style='font-size:16px; white-space: nowrap;'><b>Total Questions:</b> {data['total_questions']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                    f"<b>Attempted:</b> {data['attempted']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                    f"<b>Correct:</b> {data['correct']} &nbsp;&nbsp;|&nbsp;&nbsp; "
+                    f"<b>Deadline:</b> {data['deadline']}</p>", 
+                    unsafe_allow_html=True
+                )
 
                 # Progress Bar
                 progress = int((data['attempted'] / data['total_questions']) * 100) if data['total_questions'] else 0
