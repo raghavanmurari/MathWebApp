@@ -87,19 +87,31 @@ if progress_data:
                 progress = int((data['attempted'] / data['total_questions']) * 100) if data['total_questions'] else 0
                 st.progress(progress / 100)
             
-            with col2:
-                # if st.button("▶ Resume", key=f"resume_{idx}", help="Continue where you left off"):
-                button_text = "✔ Completed" if data['total_questions'] == data['attempted'] else "▶ Resume"
-                if st.button(button_text, key=f"resume_{idx}", help="Continue where you left off"):
-
-                    assignment_id = resume_assignment(student_id, data["topic"], data["sub_topic"])
-                    if assignment_id:
-                        st.session_state["current_assignment"] = assignment_id
-                        st.session_state["current_question_index"] = 0
-                        st.session_state["current_topic"] = data["topic"]
-                        st.session_state["current_subtopic"] = data["sub_topic"]
-                        st.switch_page("pages/question_page.py")
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+        with col2:
+                    # Check if assignment is completed
+                    is_completed = data['total_questions'] == data['attempted']
+                    button_text = "✔ Completed" if is_completed else "▶ Resume"
+                    
+                    # Button will be disabled if completed
+                    if st.button(button_text, key=f"resume_{idx}", help="Continue where you left off", disabled=is_completed):
+                        st.write("Debug: Starting Resume process")
+                        st.write(f"Debug: Student ID - {student_id}")
+                        st.write(f"Debug: Topic - {data['topic']}")
+                        st.write(f"Debug: Sub Topic - {data['sub_topic']}")
+                        
+                        assignment_id = resume_assignment(student_id, data["topic"], data["sub_topic"])
+                        st.write(f"Debug: Assignment ID returned - {assignment_id}")
+                        
+                        if assignment_id:
+                            st.session_state["student_id"] = student_id
+                            st.session_state["current_assignment"] = assignment_id
+                            st.session_state["current_question_index"] = 0
+                            st.session_state["current_topic"] = data["topic"]
+                            st.session_state["current_subtopic"] = data["sub_topic"]
+                            
+                            st.write("Debug: All session states set, preparing to switch page")
+                            st.switch_page("pages/question_page.py")
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.info("No active assignments available.")
