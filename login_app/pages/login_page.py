@@ -29,8 +29,20 @@ if 'new_password_mode' not in st.session_state:
 
 load_session()
 
-st.title("🔢 Math Web App - Login")
+st.title("🔢 MAD")
+# st.markdown("##### :sparkles: Math A Day keeps errors at bay! :sparkles:")
 
+st.markdown(
+    """
+    <h5 style="text-align: center;">
+        ✨ Math A Day keeps errors at bay! ✨
+    </h5>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# st.markdown("## Math A Day keeps errors at bay!")
 # Email validation pattern
 email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
