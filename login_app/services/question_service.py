@@ -136,70 +136,61 @@ def get_current_question():
 
 
 def update_student_response(assignment_id, student_id, question_id, selected_answer):
-    """
-    Updates the student's response in the database.
-    Parameters:
-    - assignment_id: ID of the current assignment
-    - student_id: ID of the current student
-    - question_id: ID of the current question
-    - selected_answer: The complete option object that was selected
-    """
-
+    """Updates the student's response in the database."""
     print("\n--- DEBUGGING update_student_response() ---")
     print(f"Student ID: {student_id}")
     print(f"Assignment ID: {assignment_id}")
     print(f"Question ID: {question_id}")
-    print(f"Selected Answer: {json.dumps(selected_answer, default=json_util.default)}")
 
-    db = get_db()
-    questions_collection = db["questions"]
-    responses_collection = db["responses"]
-
-    # Verify the question exists
-    question = questions_collection.find_one({"_id": ObjectId(question_id)})
-    if not question:
-        print(f"❌ ERROR: Question with ID {question_id} not found in MongoDB!")
-        st.error("Question not found!")
-        return
-
-    # Determine if the selected answer is correct
-    is_correct = selected_answer.get("is_correct", False)
-
-    # Prepare response data
-    response_data = {
-        "student_id": ObjectId(student_id),
-        "assignment_id": ObjectId(assignment_id),
-        "question_id": ObjectId(question_id),
-        "selected_option": {
-            "option_id": selected_answer.get("option_id", ""),
-            "text": selected_answer.get("text", "")
-        },
-        "is_correct": is_correct,
-        "timestamp": datetime.now()
-    }
-
-    print("\nUpdating MongoDB with data:")
-    print(json.dumps(response_data, default=json_util.default))
-
-    # Perform the database update
     try:
+        db = get_db()
+        responses_collection = db["responses"]
+
+        # Convert IDs to ObjectId
+        student_id_obj = ObjectId(student_id)
+        assignment_id_obj = ObjectId(assignment_id)
+        question_id_obj = ObjectId(question_id)
+
+        # Prepare response data
+        response_data = {
+            "student_id": student_id_obj,
+            "assignment_id": assignment_id_obj,
+            "question_id": question_id_obj,
+            "selected_option": selected_answer,
+            "is_correct": selected_answer.get("is_correct", False),
+            "timestamp": datetime.now()
+        }
+
+        print("Saving response data:", response_data)
+
+        # Save response
         result = responses_collection.update_one(
             {
-                "student_id": ObjectId(student_id),
-                "assignment_id": ObjectId(assignment_id),
-                "question_id": ObjectId(question_id)
+                "student_id": student_id_obj,
+                "assignment_id": assignment_id_obj,
+                "question_id": question_id_obj
             },
             {"$set": response_data},
-            upsert=True  # Insert if not exists, update if exists
+            upsert=True
         )
 
-        # Log MongoDB update results
-        print(f"✅ MongoDB Update Result: Matched {result.matched_count}, Modified {result.modified_count}")
-        if result.matched_count == 0 and result.upserted_id:
-            print(f"🆕 New response inserted with ID: {result.upserted_id}")
-        elif result.modified_count == 0:
-            print(f"⚠️ Warning: No changes were made. Maybe data was already the same?")
+        print("Response saved successfully")
+        print(f"Matched: {result.matched_count}, Modified: {result.modified_count}")
+        if result.upserted_id:
+            print(f"New response ID: {result.upserted_id}")
+            
+        # Verify the response was saved
+        saved_response = responses_collection.find_one({
+            "student_id": student_id_obj,
+            "assignment_id": assignment_id_obj,
+            "question_id": question_id_obj
+        })
+        print("Verified saved response:", saved_response)
+
+        return True
 
     except Exception as e:
-        print(f"❌ ERROR updating MongoDB: {str(e)}")
-        st.error("Failed to save response. Please try again.")
+        print(f"ERROR in update_student_response: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return False
