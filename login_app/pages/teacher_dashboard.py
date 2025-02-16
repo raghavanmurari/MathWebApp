@@ -41,14 +41,6 @@ load_session()
 if not st.session_state.logged_in:
     st.switch_page("pages/login_page.py")
 
-# col1, col2 = st.columns([0.9, 0.1])
-# with col1:
-#     st.title("🎓 Teacher Dashboard")
-# with col2:
-#     if st.button("Logout", help="Click to logout"):
-#         clear_session()
-#         st.switch_page("pages/login_page.py")
-
 # Add this after load_session()
 def get_teacher_name():
     if "user_id" in st.session_state:
@@ -194,9 +186,9 @@ with tab4:
                     "Created": assignment.get("created_at").strftime("%Y-%m-%d %H:%M") if assignment.get("created_at") else "No date",
                     "Deadline": deadline,
                     "Status": status,
-                    "Assigned Students": assigned_students
-                    # "Student User IDs": assigned_student_ids  # ✅ Display student user IDs
-                })
+                    "Assigned Students": assigned_students,
+                    "Grade": assignment.get("grade", "N/A")  # If you don't have a grade field yet, use "N/A"
+                    })
 
             if assignment_data:
                 st.dataframe(
@@ -208,8 +200,9 @@ with tab4:
                         "Created": st.column_config.TextColumn("Created Date"),  # Add this line
                         "Deadline": st.column_config.TextColumn("Deadline"),
                         "Status": st.column_config.TextColumn("Status", width="small"),
-                        "Assigned Students": st.column_config.TextColumn("Assigned Students")
+                        "Assigned Students": st.column_config.TextColumn("Assigned Students"),
                         # "Student User IDs": st.column_config.TextColumn("Student User IDs")  # ✅ New Column
+                        "Grade": st.column_config.TextColumn("Grade")
                     }
                 )
             else:
@@ -285,16 +278,27 @@ with tab5:
                                 'topic': topic_name,
                                 'subtopic': subtopic
                             }
-
         with col2:
             if len(topic_subtopic_options) > 1:
-                selected_topic_subtopic = st.selectbox(
-                    "Select Topic - Subtopic:",
-                    options=topic_subtopic_options
+                # Use a multiselect instead of a selectbox.
+                selected_topic_subtopics = st.multiselect(
+                    "Select one or more Topic - Subtopic combinations:",
+                    options=topic_subtopic_options,
+                    default=["All Topics"]  # Default selection can be "All Topics"
                 )
             else:
                 st.warning("No topics found for this student.")
-                selected_topic_subtopic = None
+                selected_topic_subtopics = ["All Topics"]
+
+        # with col2:
+        #     if len(topic_subtopic_options) > 1:
+        #         selected_topic_subtopic = st.selectbox(
+        #             "Select Topic - Subtopic:",
+        #             options=topic_subtopic_options
+        #         )
+        #     else:
+        #         st.warning("No topics found for this student.")
+        #         selected_topic_subtopic = None
 
         if student_id:
             student_name = students_dict[student_id]
@@ -330,9 +334,9 @@ with tab5:
 
                     # Calculate accuracies for each difficulty level
                     for sub_topic in assignment.get("sub_topics", []):
-                        # Skip if topic-subtopic filter is applied and doesn't match
+                        # Skip if the current combination is not selected
                         current_combo = f"{topic_name} - {sub_topic}"
-                        if selected_topic_subtopic != "All Topics" and current_combo != selected_topic_subtopic:
+                        if "All Topics" not in selected_topic_subtopics and current_combo not in selected_topic_subtopics:
                             continue
 
                         # Filter responses by subtopic
@@ -356,7 +360,7 @@ with tab5:
                                 hard_accuracy = accuracy
 
                         # Count practice days
-                        practice_dates = {r.get("submission_date").date() for r in subtopic_responses if r.get("submission_date")}
+                        practice_dates = {r.get("timestamp").date() for r in subtopic_responses if r.get("timestamp")}
                         num_practice_days = len(practice_dates)
 
                         # Format dates
