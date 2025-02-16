@@ -116,7 +116,16 @@ if progress_data:
                             
                             st.write("Debug: All session states set, preparing to switch page")
                             st.switch_page("pages/question_page.py")
-                    
+
+
+                    # Now add the Review button if at least one question is attempted
+                    if data['attempted'] > 0:
+                        if st.button("Review", key=f"review_{idx}", help="Review attempted questions"):
+                            assignment_id = data["assignment_id"]  # or however you're storing it
+                            st.session_state["student_id"] = student_id
+                            st.session_state["current_assignment"] = assignment_id
+                            st.switch_page("pages/review_page.py")
+
                     st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.info("No active assignments available.")

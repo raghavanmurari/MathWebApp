@@ -45,6 +45,10 @@ def get_attempted_count():
         print(f"Error getting attempted count: {str(e)}")
         return 1
 
+if "current_question_index" not in st.session_state:
+    st.session_state.current_question_index = 0
+
+
 if "current_assignment" not in st.session_state:
    st.error("No active assignment selected.")
    st.switch_page("pages/student_dashboard.py")

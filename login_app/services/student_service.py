@@ -1,3 +1,4 @@
+
 from database.db_connection import get_user_collection, get_question_collection, get_assignment_collection, get_db
 from bson.objectid import ObjectId
 from datetime import datetime
@@ -63,6 +64,7 @@ def get_assignment_progress(student_id):
             correct = sum(1 for r in responses if r.get("is_correct", False))
 
             progress_data.append({
+                "assignment_id": str(assignment["_id"]),  # <--- add this
                 "topic": topic,
                 "sub_topic": sub_topic,
                 "total_questions": total_questions,
