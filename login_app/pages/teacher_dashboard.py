@@ -152,6 +152,7 @@ with tab4:
                 # ✅ Fetch Student Names and User IDs
                 student_names = []
                 student_user_ids = []
+                student_grades = []  # NEW list for grades
 
                 student_ids = assignment.get("students", [])
                 if student_ids:
@@ -160,6 +161,10 @@ with tab4:
                             # Fetch student details from `students` collection
                             student_doc = students_collection.find_one({"_id": ObjectId(str(student_id))})
                             if student_doc:
+                                # Get grade from student document as in student_list.py
+                                grade = student_doc.get("grade", "N/A")
+                                student_grades.append(str(grade))
+
                                 user_id = student_doc.get("user_id")
 
                                 # Fetch user details from `users` collection using user_id
@@ -170,15 +175,19 @@ with tab4:
                                 else:
                                     student_names.append("No student found")
                                     student_user_ids.append(str(user_id))
+                                    student_grades.append("N/A")
                             else:
                                 student_names.append("No student found")
                                 student_user_ids.append("N/A")
+                                student_grades.append("N/A")
                         except Exception as e:
                             student_names.append(f"Error: {str(e)}")
                             student_user_ids.append("N/A")
+                            student_grades.append("N/A")
 
                 assigned_students = ", ".join(student_names) if student_names else "No students assigned"
                 assigned_student_ids = ", ".join(student_user_ids) if student_user_ids else "No students assigned"
+                grade_str = ", ".join(student_grades) if student_grades else "N/A"
 
                 assignment_data.append({
                     "Topic": topic_name,  # Add Topic as first column
@@ -187,7 +196,7 @@ with tab4:
                     "Deadline": deadline,
                     "Status": status,
                     "Assigned Students": assigned_students,
-                    "Grade": assignment.get("grade", "N/A")  # If you don't have a grade field yet, use "N/A"
+                    "Grade": grade_str  
                     })
 
             if assignment_data:
@@ -307,7 +316,6 @@ with tab5:
             if not active_assignments:
                 st.warning("No active assignments for this student.")
             else:
-                st.write("### Performance Analysis")
                 table_data = []
                 
                 for assignment in active_assignments:
