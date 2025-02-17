@@ -14,6 +14,14 @@ from bson.objectid import ObjectId
 import re
 from st_aggrid import AgGrid, GridOptionsBuilder
 
+
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.user_role = None
+    st.session_state.user_email = None
+    st.session_state.remember_me = False
+
+
 def is_valid_email(email):
     """Check if the provided email follows a valid pattern."""
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'

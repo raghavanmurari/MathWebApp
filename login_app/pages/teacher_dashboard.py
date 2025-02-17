@@ -9,7 +9,12 @@ from utils.progress_tracking import ProgressTracker
 import pandas as pd
 from utils.pdf_generator import generate_pdf_report
 
-
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.user_role = None
+    st.session_state.user_email = None
+    st.session_state.remember_me = False
+    
 # ✅ Remove Sidebar & Set Page Config
 st.set_page_config(
     page_title="Teacher Dashboard",

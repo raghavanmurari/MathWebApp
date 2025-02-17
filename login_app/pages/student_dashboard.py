@@ -5,7 +5,12 @@ from bson.objectid import ObjectId
 from services.question_service import get_current_question, update_student_response
 from services.student_service import get_assignment_progress, resume_assignment
 from utils.session_manager import clear_session
-
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.user_role = None
+    st.session_state.user_email = None
+    st.session_state.remember_me = False
+    
 # Authentication checks
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.warning("You must be logged in to access this page.")
