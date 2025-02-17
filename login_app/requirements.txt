@@ -1,0 +1,5 @@
+streamlit
+pymongo
+numpy
+pandas
+requests
