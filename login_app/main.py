@@ -6,7 +6,7 @@ from utils.navigation import redirect_to_dashboard, redirect_to_login
 st.set_page_config(
     page_title="Math Web App",
     page_icon="🔢",
-    layout="centered"
+    layout="centered",
     initial_sidebar_state="collapsed"  # or "auto" or "expanded"
 )
 
