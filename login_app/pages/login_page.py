@@ -177,6 +177,12 @@ def handle_login(login_btn, email, password, remember_me):
                     st.session_state.user_role = role
                     st.session_state.user_email = email
                     st.session_state.remember_me = remember_me
+                    
+                    # NEW: Fetch and store the user's unique ID
+                    from database.user_dao import find_user
+                    user_record = find_user(email)
+                    if user_record:
+                        st.session_state.user_id = str(user_record["_id"])
 
                     if remember_me:
                         with open(SESSION_FILE, "w") as f:
