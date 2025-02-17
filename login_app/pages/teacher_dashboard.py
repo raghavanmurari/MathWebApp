@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 from pages.create_assignment import show_create_assignment
 from utils.progress_tracking import ProgressTracker
 import pandas as pd
+from utils.pdf_generator import generate_pdf_report
 
 
 # ✅ Remove Sidebar & Set Page Config
@@ -299,16 +300,6 @@ with tab5:
                 st.warning("No topics found for this student.")
                 selected_topic_subtopics = ["All Topics"]
 
-        # with col2:
-        #     if len(topic_subtopic_options) > 1:
-        #         selected_topic_subtopic = st.selectbox(
-        #             "Select Topic - Subtopic:",
-        #             options=topic_subtopic_options
-        #         )
-        #     else:
-        #         st.warning("No topics found for this student.")
-        #         selected_topic_subtopic = None
-
         if student_id:
             student_name = students_dict[student_id]
             st.subheader(f"Progress for {student_name}")
@@ -399,7 +390,51 @@ with tab5:
                         "Hard Accuracy"
                     ])
 
-                    # Display using Streamlit
                     st.dataframe(df, hide_index=True)
+
+                    # --- New PDF Generation Logic ---
+                    # Compute overall practice days and possible days
+                    total_days_practiced = sum([row[4] for row in table_data])
+                    total_possible_days = len(table_data)
+                    
+                    # Helper to parse the accuracy string (e.g., "🟢 85.0%" becomes 85.0)
+                    def parse_accuracy(acc_str):
+                        try:
+                            # Splitting and removing the percentage symbol
+                            return float(acc_str.split()[1].replace("%", ""))
+                        except (IndexError, ValueError):
+                            return 0.0
+                    
+                    # Compute average accuracy for each difficulty level
+                    avg_easy = sum(parse_accuracy(row[5]) for row in table_data) / len(table_data)
+                    avg_medium = sum(parse_accuracy(row[6]) for row in table_data) / len(table_data)
+                    avg_hard = sum(parse_accuracy(row[7]) for row in table_data) / len(table_data)
+                    
+                    accuracies = {"Easy": avg_easy, "Medium": avg_medium, "Hard": avg_hard}
+                    focus_needed_level = min(accuracies, key=accuracies.get)
+                    strength_level = max(accuracies, key=accuracies.get)
+                    
+                    focus_needed = f"{focus_needed_level} ({accuracies[focus_needed_level]:.2f}% Accuracy)"
+                    strength = f"{strength_level} ({accuracies[strength_level]:.2f}% Accuracy)"
+                    
+                    pdf_data = generate_pdf_report(
+                        student_name,
+                        total_days_practiced, 
+                        total_possible_days, 
+                        focus_needed, 
+                        strength,
+                        table_data  # pass the same table_data list
+                    )
+
+                    st.download_button(
+                        label="Download PDF Report",
+                        data=pdf_data,
+                        file_name=f"{student_name}_Weekly_Progress.pdf",
+                        mime="application/octet-stream"
+                    )
+
+
+                    # --- End PDF Generation Logic ---
+                    
                 else:
                     st.info("No data available for the selected filters.")
