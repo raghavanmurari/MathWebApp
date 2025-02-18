@@ -1,0 +1,112 @@
+[{
+  "_id": {
+    "$oid": "67a0ac22cebf59a3881a0a60"
+  },
+  "user_id": {
+    "$oid": "67a0ac2240cc1e4f4de4cffb"
+  },
+  "active": true,
+  "grade": 6,
+  "school": "hlc",
+  "updated_at": {
+    "$date": "2025-02-03T11:44:34.285Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67a22711cebf59a3881a0a62"
+  },
+  "user_id": {
+    "$oid": "67a227109e0656c8ba9415f0"
+  },
+  "active": true,
+  "grade": 6,
+  "school": "eurokids",
+  "updated_at": {
+    "$date": "2025-02-04T14:41:21.098Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67a2274acebf59a3881a0a63"
+  },
+  "user_id": {
+    "$oid": "67a2274a9e0656c8ba9415f7"
+  },
+  "active": true,
+  "grade": 8,
+  "school": "APL",
+  "updated_at": {
+    "$date": "2025-02-04T14:42:18.881Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67a22770cebf59a3881a0a64"
+  },
+  "user_id": {
+    "$oid": "67a227709e0656c8ba9415fe"
+  },
+  "active": true,
+  "grade": 8,
+  "school": "HLC",
+  "updated_at": {
+    "$date": "2025-02-04T14:42:56.463Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67a778abcebf59a3881a0b66"
+  },
+  "user_id": {
+    "$oid": "67a778abc155d5e5fcf56c18"
+  },
+  "active": true,
+  "grade": 9,
+  "school": "babaji",
+  "updated_at": {
+    "$date": "2025-02-08T15:30:51.883Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67aed04d038a1d039aaa43e3"
+  },
+  "user_id": {
+    "$oid": "67aed04d6551ac0b422e2195"
+  },
+  "active": true,
+  "grade": 6,
+  "school": "aaa",
+  "updated_at": {
+    "$date": "2025-02-14T05:10:37.459Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67aed2ce038a1d039aaa43e4"
+  },
+  "user_id": {
+    "$oid": "67aed2ce6551ac0b422e21ad"
+  },
+  "active": true,
+  "grade": 6,
+  "school": "dfgdfg",
+  "updated_at": {
+    "$date": "2025-02-14T05:21:18.779Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67af0e3e038a1d039aaa43e5"
+  },
+  "user_id": {
+    "$oid": "67af0e3efb9088b9e63cd09a"
+  },
+  "active": true,
+  "grade": 6,
+  "school": "apl",
+  "updated_at": {
+    "$date": "2025-02-14T09:34:54.454Z"
+  }
+}]

@@ -1,0 +1,198 @@
+[{
+  "_id": {
+    "$oid": "679cfa3108df6b66a006655e"
+  },
+  "email": "mathwebapp7@gmail.com",
+  "password": "$2b$12$JF97SlsEqJBp5ktpu0uO.OD4Nx0M4xJvhw84wY9ezLGIuBUtg0iMa",
+  "role": "admin",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-01T23:19:00.804Z"
+  },
+  "gender": "other",
+  "name": "admin",
+  "updated_at": {
+    "$date": "2025-02-03T12:04:12.491Z"
+  },
+  "parent_email": null
+},
+{
+  "_id": {
+    "$oid": "67a0aab09bc91474498c7076"
+  },
+  "name": "raghavanmurari",
+  "email": "raghavanmurari@gmail.com",
+  "parent_email": null,
+  "password_hash": "$2b$12$neaY15J2CNdRIh0bsd21eOpKofy0F0EhuAGUJFtx9z2qlPvm/449m",
+  "role": "teacher",
+  "gender": "male",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-03T11:38:24.506Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-16T06:22:06.988Z"
+  },
+  "password": "$2b$12$Ugg0iyNfkypJYvM7BOSvb.sWpp2tNKisdKMNyEPC0yxjOThQu/qiO"
+},
+{
+  "_id": {
+    "$oid": "67a0ac2240cc1e4f4de4cffb"
+  },
+  "name": "sid",
+  "email": "sid@student.com",
+  "parent_email": "meenakshi@parent.com",
+  "password_hash": "$2b$12$FmHruKEYL.CjtcooAk6iKuQWoUYdnL20n7zOxKtskRdiA4LsDEKp2",
+  "role": "student",
+  "gender": "male",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-03T11:44:34.273Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-14T09:47:10.828Z"
+  },
+  "grade": 6,
+  "school": "hlc",
+  "password": "$2b$12$QVivMBPqObamdcK4N6Tt/ugy3dHnvpo9TKhhR21zMS/xsiKXCZS6a",
+  "phone": "1234"
+},
+{
+  "_id": {
+    "$oid": "67a0ac4140cc1e4f4de4d004"
+  },
+  "name": "meenakshi",
+  "email": "meenu@student.com",
+  "parent_email": "meenu@parent.com",
+  "password_hash": "$2b$12$LAxQtFLUpxVY917AOVJaLe.RDrA1sL0aMkp1rCHpfMjfCKlWrc6DS",
+  "role": "teacher",
+  "gender": "female",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-03T11:45:05.839Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-10T02:27:54.783Z"
+  },
+  "password": "$2b$12$J6fIH1.t/LTJkhU8ECUgceF/cMzCRdZni8lpNrCcFve2nHrgrsa4K"
+},
+{
+  "_id": {
+    "$oid": "67a227109e0656c8ba9415f0"
+  },
+  "name": "aadhi",
+  "email": "adhi@gmail.com",
+  "parent_email": "aadhi@parent.com",
+  "password_hash": "$2b$12$UwFKdNIgO6ghPYgIlYxff.YTISeHaGAmWmDVa7WeIR2YN5coR4wH6",
+  "role": "student",
+  "gender": "male",
+  "active": false,
+  "created_at": {
+    "$date": "2025-02-04T14:41:21.037Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-10T05:11:51.586Z"
+  },
+  "grade": 6,
+  "school": "eurokids",
+  "password": "$2b$12$1xHojQwAelUMBwbX3z2vQetaElE3p6pPh/mqfG59zzDhCbxz9Hr5a"
+},
+{
+  "_id": {
+    "$oid": "67a2274a9e0656c8ba9415f7"
+  },
+  "name": "naru",
+  "email": "naru@student.com",
+  "parent_email": "naru@parent.com",
+  "password_hash": "$2b$12$KuekTRfzhOdC0nIMTsLZqO6tVtaOtdI0jDGOdKj7z2alNQVms63X.",
+  "role": "student",
+  "gender": "female",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-04T14:42:18.818Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-05T15:43:58.249Z"
+  },
+  "grade": 8,
+  "school": "APL",
+  "password": "$2b$12$2s7UD.Ep6VMsi4E475tYou9PwXEf9MOJ5TJW/305uEALOxRdZixoa"
+},
+{
+  "_id": {
+    "$oid": "67a778abc155d5e5fcf56c18"
+  },
+  "name": "swetha",
+  "email": "swetha@student.com",
+  "parent_email": "swethaparent.com",
+  "password_hash": "$2b$12$wtKrBHR.K7UQqPeNUTfPTeodYjEJKGn8xXwXfdKl.gSVO8u4X41be",
+  "role": "student",
+  "gender": "female",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-08T15:30:51.836Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-08T15:53:27.437Z"
+  },
+  "grade": 9,
+  "school": "babaji",
+  "password": "$2b$12$SMPfoFqLFQRdWl3ZfSm42.yNL28vva1gB3l2D0al34zs6SAhc1ORe"
+},
+{
+  "_id": {
+    "$oid": "67aed4a86551ac0b422e21c4"
+  },
+  "name": "sds",
+  "email": "sdsd",
+  "password_hash": "$2b$12$KF4zs.ZzeNyBFjQPRK1G9e9S4xQxneulInHV/pwo4rpHF5w83At/C",
+  "role": "teacher",
+  "gender": "male",
+  "active": false,
+  "created_at": {
+    "$date": "2025-02-14T05:29:12.721Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-14T05:30:14.900Z"
+  },
+  "phone": "34"
+},
+{
+  "_id": {
+    "$oid": "67aed95a6551ac0b422e2259"
+  },
+  "name": "adad",
+  "email": "chumma@12.com",
+  "password_hash": "$2b$12$1/iT9eyrQRsrtpEthzfHse95MzqXfKSQ2gsXJyQe0Yrm.FeJqEnKm",
+  "role": "teacher",
+  "gender": "male",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-14T05:49:14.418Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-14T05:59:27.719Z"
+  },
+  "phone": "34"
+},
+{
+  "_id": {
+    "$oid": "67af0e3efb9088b9e63cd09a"
+  },
+  "name": "varun",
+  "email": "var@gmail.com",
+  "password_hash": "$2b$12$WUi1GQtsFbzf.R8YKTIX4eMS.bcOu.I9clMgewQrxg2HwEA1zWBMa",
+  "role": "student",
+  "gender": "male",
+  "active": true,
+  "created_at": {
+    "$date": "2025-02-14T09:34:54.437Z"
+  },
+  "updated_at": {
+    "$date": "2025-02-14T09:40:10.656Z"
+  },
+  "phone": "979099",
+  "parent_email": "varunsparent@parent.com",
+  "grade": 6,
+  "school": "apl"
+}]

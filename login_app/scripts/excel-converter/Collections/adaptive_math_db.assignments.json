@@ -1,0 +1,78 @@
+[{
+  "_id": {
+    "$oid": "67b133f24afa90b701c8a64c"
+  },
+  "teacher_id": {
+    "$oid": "67a0aab09bc91474498c7076"
+  },
+  "students": [
+    {
+      "$oid": "67a0ac22cebf59a3881a0a60"
+    }
+  ],
+  "topic_id": {
+    "$oid": "67a1f999cebf59a3881a0a61"
+  },
+  "sub_topics": [
+    "Section E - Applying Fractions in Real-life Problems"
+  ],
+  "deadline": {
+    "$date": "2025-02-23T23:59:00.000Z"
+  },
+  "status": "active",
+  "created_at": {
+    "$date": "2025-02-16T06:10:18.333Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67b134054afa90b701c8a6ac"
+  },
+  "teacher_id": {
+    "$oid": "67a0aab09bc91474498c7076"
+  },
+  "students": [
+    {
+      "$oid": "67a0ac22cebf59a3881a0a60"
+    }
+  ],
+  "topic_id": {
+    "$oid": "67a220c4732accb0d9b5930a"
+  },
+  "sub_topics": [
+    "Section D - Finding the Value of an Expression"
+  ],
+  "deadline": {
+    "$date": "2025-02-23T23:59:00.000Z"
+  },
+  "status": "active",
+  "created_at": {
+    "$date": "2025-02-16T06:10:37.408Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67b185b538928277a3720c6f"
+  },
+  "teacher_id": {
+    "$oid": "67a0aab09bc91474498c7076"
+  },
+  "students": [
+    {
+      "$oid": "67a22711cebf59a3881a0a62"
+    }
+  ],
+  "topic_id": {
+    "$oid": "67a1f999cebf59a3881a0a61"
+  },
+  "sub_topics": [
+    "Section A - Identifying and Comparing Fractions"
+  ],
+  "deadline": {
+    "$date": "2025-02-23T23:59:00.000Z"
+  },
+  "status": "active",
+  "created_at": {
+    "$date": "2025-02-16T11:59:09.660Z"
+  }
+}]

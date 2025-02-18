@@ -1,0 +1,47 @@
+[{
+  "_id": {
+    "$oid": "67a1f999cebf59a3881a0a61"
+  },
+  "created_at": {
+    "$date": "2025-02-04T11:27:21.642Z"
+  },
+  "name": "Fractions",
+  "sub_topics": [
+    "Section C - Addition and Subtraction of Fractions",
+    "Section D - Multiplication and Division of Fractions",
+    "Section A - Identifying and Comparing Fractions",
+    "Section E - Applying Fractions in Real-life Problems",
+    "Section B - Simplifying Fractions"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67a220c4732accb0d9b5930a"
+  },
+  "name": "AlgebraicExpressions",
+  "sub_topics": [
+    "Section A - Terms of an Expression",
+    "Section B - Like and Unlike Terms",
+    "Section C - Monomials, Binomials, Trinomials, and Polynomials",
+    "Section D - Finding the Value of an Expression"
+  ],
+  "created_at": {
+    "$date": "2025-02-04T14:14:28.807Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67a226a0735946c1cba8e93d"
+  },
+  "name": "Decimals",
+  "sub_topics": [
+    "Place Value and Reading Decimals",
+    "Decimal Addition and Subtraction",
+    "Decimal Multiplication",
+    "Decimal Division",
+    "Applying Decimals in Real-life Problems"
+  ],
+  "created_at": {
+    "$date": "2025-02-04T14:39:28.549Z"
+  }
+}]
