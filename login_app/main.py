@@ -15,7 +15,7 @@ except Exception as e:
 
 # Simple page config with just the basics
 st.set_page_config(
-    page_title="Math Web App",
+    page_title="Math Web Apppppppp",
     page_icon="🔢",
     layout="centered",
     initial_sidebar_state="collapsed"  # or "auto" or "expanded"
