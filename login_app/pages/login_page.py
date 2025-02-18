@@ -66,8 +66,7 @@ def show_reset_email_form():
     st.write("Enter your email address to receive a reset code.")
     
     reset_email = st.text_input("Email", placeholder="Enter your email", key="reset_email_input")
-    # send_code_btn = st.button("Send Reset Code")
-    # back_btn = st.button("Back to Login")
+
     # Create two columns for the buttons
     
     col1, col2 = st.columns([1, 1])
