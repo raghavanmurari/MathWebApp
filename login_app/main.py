@@ -12,14 +12,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # or "auto" or "expanded"
 )
 
-# Diagnostic block to check DB connection
-try:
-    db = get_db()
-    # Attempt a simple query, e.g., list collections or fetch one document
-    collections = db.list_collection_names()
-    st.write("Connected to DB! Collections:", collections)
-except Exception as e:
-    st.write("Error connecting to DB:", e)
+# # Diagnostic block to check DB connection
+# try:
+#     db = get_db()
+#     # Attempt a simple query, e.g., list collections or fetch one document
+#     collections = db.list_collection_names()
+#     st.write("Connected to DB! Collections:", collections)
+# except Exception as e:
+#     st.write("Error connecting to DB:", e)
 
 # Initialize session state if not already set
 if "logged_in" not in st.session_state:
@@ -35,8 +35,8 @@ load_session()
 if "logout" in st.query_params:
     clear_session()
 
-# # Redirect users based on login status
-# if st.session_state.logged_in:
-#     redirect_to_dashboard()
-# else:
-#     redirect_to_login()
+# Redirect users based on login status
+if st.session_state.logged_in:
+    redirect_to_dashboard()
+else:
+    redirect_to_login()
