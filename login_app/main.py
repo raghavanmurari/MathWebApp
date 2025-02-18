@@ -2,6 +2,17 @@ import streamlit as st
 from utils.session_manager import load_session, clear_session
 from utils.navigation import redirect_to_dashboard, redirect_to_login
 
+from config import get_db
+
+# Diagnostic block to check DB connection
+try:
+    db = get_db()
+    # Attempt a simple query, e.g., list collections or fetch one document
+    collections = db.list_collection_names()
+    st.write("Connected to DB! Collections:", collections)
+except Exception as e:
+    st.write("Error connecting to DB:", e)
+
 # Simple page config with just the basics
 st.set_page_config(
     page_title="Math Web App",
