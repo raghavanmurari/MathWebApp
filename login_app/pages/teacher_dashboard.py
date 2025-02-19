@@ -68,10 +68,10 @@ with col2:
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🏠 Dashboard",
-    "👩‍🏫 Students",
+    "👩‍🏫 List of Students",
     "📚 Question Bank",
-    "📝 Assignments",
-    "📊 Progress"
+    "📝 Create Assignments",
+    "📊 Generate Reports"
 ])
 
 # ✅ Fetch Total Students
@@ -243,8 +243,8 @@ with tab4:
 
 
 with tab5:
-    st.header("📊 Student Progress")
-
+    # st.header("📊 Student Progress")
+    st.header("")
     # Fetch required collections
     db = get_db()
     students_collection = db["students"]
@@ -309,7 +309,7 @@ with tab5:
 
         if student_id:
             student_name = students_dict[student_id]
-            st.subheader(f"Progress for {student_name}")
+            # st.subheader(f"Progress for {student_name}")
 
             if not active_assignments:
                 st.warning("No active assignments for this student.")
@@ -436,7 +436,7 @@ with tab5:
             """, unsafe_allow_html=True)
 
             # Replace the existing report section with this:
-            if st.button("CHECK REPORT", key=f"progress_report_{student_id}"):
+            if st.button("Generate Report", key=f"progress_report_{student_id}"):
                 # Create tabs for different sections of the report
                 report_tabs = st.tabs(["Overview 📊", "Details 📝", "Recommendations 💡"])
                 
@@ -450,7 +450,7 @@ with tab5:
                         st.markdown("""
                             <div class="metric-container">
                                 <div class="stat-header">Practice Engagement</div>
-                                <div class="stat-value">📅 {total_practice_days} Days</div>
+                                <div class="stat-value">📅 {total_practice_days} out of 7 Days</div>
                             </div>
                         """.format(total_practice_days=total_practice_days), unsafe_allow_html=True)
                         

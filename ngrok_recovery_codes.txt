@@ -1,0 +1,19 @@
+SH5EB3JYUF
+2587HZSYZV
+NWQRK8MZTY
+CWTVNCWKVR
+M8YJFUT9EU
+HZN3M6D2KF
+GB9PPHWRJG
+Y8SKN493QS
+FWBX56EYED
+QX3G5CBR4E
+
+
+ngrok config add-authtoken 2tGSIczroSBjnddkQJfE2WmbtMs_87Ea69j4NgffERQcahZyi
+
+
+ngrok                                                                                                   (Ctrl+C to quit)                                                                                                                        ❤️  ngrok? We're hiring https://ngrok.com/careers                                                                                                                                                                                               Session Status                online                                                                                    Account                       Raghavanmurari Vijayaraaghaven (Plan: Free)                                               Version                       3.19.1                                                                                    Region                        India (in)                                                                                Latency                       24ms                                                                                      Web Interface                 http://127.0.0.1:4040                                                                     Forwarding                    https://8aca-27-4-44-54.ngrok-free.app -> http://localhost:8501                                                                                                                                                   Connections                   ttl     opn     rt1     rt5     p50     p90                                                                             0       0       0.00    0.00    0.00    0.00                                                                                                                              
+
+Session Status                online                                                                                    Account                       Raghavanmurari Vijayaraaghaven (Plan: Free)                                               Version                       3.19.1                                                                                    Region                        India (in)                                                                                Latency                       20ms                                                                                      Web Interface                 http://127.0.0.1:4040                                                                     Forwarding                    https://8aca-27-4-44-54.ngrok-free.app -> http://localhost:8501                                                             
+
