@@ -8,6 +8,7 @@ from pages.create_assignment import show_create_assignment
 from utils.progress_tracking import ProgressTracker
 import pandas as pd
 from utils.pdf_generator import generate_pdf_report
+from datetime import datetime
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -239,6 +240,8 @@ with tab4:
         st.markdown("---")  # Add a separator
         show_create_assignment()
 
+
+
 with tab5:
     st.header("📊 Student Progress")
 
@@ -295,11 +298,10 @@ with tab5:
                             }
         with col2:
             if len(topic_subtopic_options) > 1:
-                # Use a multiselect instead of a selectbox.
                 selected_topic_subtopics = st.multiselect(
                     "Select one or more Topic - Subtopic combinations:",
                     options=topic_subtopic_options,
-                    default=["All Topics"]  # Default selection can be "All Topics"
+                    default=["All Topics"]
                 )
             else:
                 st.warning("No topics found for this student.")
@@ -313,9 +315,9 @@ with tab5:
                 st.warning("No active assignments for this student.")
             else:
                 table_data = []
+                total_practice_days = 0
                 
                 for assignment in active_assignments:
-                    # Get topic name
                     topic_id = assignment.get("topic_id")
                     topic_name = "Unknown Topic"
                     if topic_id:
@@ -323,7 +325,6 @@ with tab5:
                         if topic_doc:
                             topic_name = topic_doc.get("name")
 
-                    # Get responses for this assignment
                     responses = list(responses_collection.find({
                         "student_id": ObjectId(student_id),
                         "assignment_id": assignment["_id"]
@@ -336,19 +337,19 @@ with tab5:
                         })
                     }
 
-                    # Calculate accuracies for each difficulty level
                     for sub_topic in assignment.get("sub_topics", []):
-                        # Skip if the current combination is not selected
                         current_combo = f"{topic_name} - {sub_topic}"
                         if "All Topics" not in selected_topic_subtopics and current_combo not in selected_topic_subtopics:
                             continue
 
-                        # Filter responses by subtopic
                         subtopic_responses = [r for r in responses 
                             if str(r["question_id"]) in questions 
                             and questions[str(r["question_id"])].get("sub_topic") == sub_topic]
 
-                        # Calculate accuracies for each difficulty level
+                        easy_accuracy = 0
+                        medium_accuracy = 0
+                        hard_accuracy = 0
+
                         for difficulty in ["Easy", "Medium", "Hard"]:
                             difficulty_responses = [r for r in subtopic_responses 
                                 if questions[str(r["question_id"])].get("difficulty") == difficulty]
@@ -363,11 +364,10 @@ with tab5:
                             else:
                                 hard_accuracy = accuracy
 
-                        # Count practice days
                         practice_dates = {r.get("timestamp").date() for r in subtopic_responses if r.get("timestamp")}
                         num_practice_days = len(practice_dates)
+                        total_practice_days += num_practice_days
 
-                        # Format dates
                         created_str = assignment.get("created_at").strftime("%Y-%m-%d") if assignment.get("created_at") else "No date"
                         deadline_str = assignment.get("deadline").strftime("%Y-%m-%d") if assignment.get("deadline") else "No deadline"
 
@@ -383,7 +383,160 @@ with tab5:
                         ])
 
                 if table_data:
-                    # Convert to DataFrame and display
+                    # Calculate overall accuracies
+                    def extract_accuracy(accuracy_str):
+                        # Remove emoji and % symbol, convert to float
+                        return float(accuracy_str.split()[1].replace('%', ''))
+
+                    avg_accuracies = {
+                        "Easy": sum(extract_accuracy(row[5]) for row in table_data) / len(table_data),
+                        "Medium": sum(extract_accuracy(row[6]) for row in table_data) / len(table_data),
+                        "Hard": sum(extract_accuracy(row[7]) for row in table_data) / len(table_data)
+                    }
+
+                    # Determine focus area and strength
+                    focus_needed_level = min(avg_accuracies, key=avg_accuracies.get)
+                    strength_level = max(avg_accuracies, key=avg_accuracies.get)
+
+            
+            # Add this CSS at the beginning of your script where other styles are defined
+            st.markdown("""
+                <style>
+                    .metric-container {
+                        background-color: #f8f9fa;
+                        border-radius: 8px;
+                        padding: 20px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    }
+                    .stat-header {
+                        color: #6b7280;
+                        font-size: 14px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                    }
+                    .stat-value {
+                        color: #111827;
+                        font-size: 24px;
+                        font-weight: 700;
+                        margin-top: 4px;
+                    }
+                    .highlight {
+                        background-color: #f3f4f6;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        font-weight: 500;
+                    }
+                    .stDataFrame {
+                        padding: 1rem;
+                        border-radius: 8px;
+                        border: 1px solid #e5e7eb;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+
+            # Replace the existing report section with this:
+            if st.button("CHECK REPORT", key=f"progress_report_{student_id}"):
+                # Create tabs for different sections of the report
+                report_tabs = st.tabs(["Overview 📊", "Details 📝", "Recommendations 💡"])
+                
+                with report_tabs[0]:
+                    # Header with student info
+                    st.markdown(f"### Performance Report for {student_name}")
+                    
+                    # Key metrics in a 2x2 grid with custom styling
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("""
+                            <div class="metric-container">
+                                <div class="stat-header">Practice Engagement</div>
+                                <div class="stat-value">📅 {total_practice_days} Days</div>
+                            </div>
+                        """.format(total_practice_days=total_practice_days), unsafe_allow_html=True)
+                        
+                        st.markdown("""
+                            <div class="metric-container" style="margin-top: 1rem;">
+                                <div class="stat-header">Focus Area Needed</div>
+                                <div class="stat-value">🎯 {level} ({accuracy:.1f}%)</div>
+                            </div>
+                        """.format(
+                            level=focus_needed_level,
+                            accuracy=avg_accuracies[focus_needed_level]
+                        ), unsafe_allow_html=True)
+
+                    with col2:
+                        st.markdown("""
+                            <div class="metric-container">
+                                <div class="stat-header">Strongest Area</div>
+                                <div class="stat-value">🏆 {level} ({accuracy:.1f}%)</div>
+                            </div>
+                        """.format(
+                            level=strength_level,
+                            accuracy=avg_accuracies[strength_level]
+                        ), unsafe_allow_html=True)
+                        
+                        overall_accuracy = sum(avg_accuracies.values()) / len(avg_accuracies)
+                        st.markdown("""
+                            <div class="metric-container" style="margin-top: 1rem;">
+                                <div class="stat-header">Overall Performance</div>
+                                <div class="stat-value">📈 {accuracy:.1f}%</div>
+                            </div>
+                        """.format(accuracy=overall_accuracy), unsafe_allow_html=True)
+
+                    # Add Topics Overview with improved styling
+                    st.markdown("### 📚 Current Topics")
+                    
+                    # Group topics to avoid repetition
+                    unique_topics = {}
+                    for topic, subtopic, _, _, _, _, _, _ in table_data:
+                        if topic not in unique_topics:
+                            unique_topics[topic] = []
+                        unique_topics[topic].append(subtopic)
+                    
+                    for topic, subtopics in unique_topics.items():
+                        st.markdown(f"""
+                            <div style="
+                                background-color: white;
+                                border-radius: 8px;
+                                padding: 15px 20px;
+                                margin: 10px 0;
+                                border-left: 4px solid #3b82f6;
+                                box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <div style="
+                                    color: #1f2937;
+                                    font-size: 16px;
+                                    font-weight: 600;
+                                    margin-bottom: 8px;">
+                                    {topic}
+                                </div>
+                                <div style="
+                                    color: #6b7280;
+                                    font-size: 14px;
+                                    padding-left: 8px;
+                                    border-left: 2px solid #e5e7eb;
+                                    margin-left: 4px;">
+                                    {subtopics[0]}
+                                </div>
+                            </div>
+                        """, unsafe_allow_html=True)
+
+                    # Practice Consistency Indicator
+                    st.markdown("### Practice Consistency")
+                    consistency_col1, consistency_col2 = st.columns([1, 2])
+                    with consistency_col1:
+                        if total_practice_days >= 5:
+                            st.success("🌟 Excellent")
+                        elif total_practice_days >= 3:
+                            st.info("👍 Good")
+                        else:
+                            st.warning("⚠️ Needs Improvement")
+                    with consistency_col2:
+                        st.progress(min(total_practice_days/7, 1.0))  # Assumes 7 days as target
+
+                with report_tabs[1]:
+                    st.markdown("### Detailed Performance by Topic")
+                    
+                    # Convert table data to DataFrame with enhanced formatting
                     df = pd.DataFrame(table_data, columns=[
                         "Topic",
                         "Sub-Topic",
@@ -394,52 +547,79 @@ with tab5:
                         "Medium Accuracy",
                         "Hard Accuracy"
                     ])
-
-                    st.dataframe(df, hide_index=True)
-
-                    # --- New PDF Generation Logic ---
-                    # Compute overall practice days and possible days
-                    total_days_practiced = sum([row[4] for row in table_data])
-                    total_possible_days = len(table_data)
                     
-                    # Helper to parse the accuracy string (e.g., "🟢 85.0%" becomes 85.0)
-                    def parse_accuracy(acc_str):
-                        try:
-                            # Splitting and removing the percentage symbol
-                            return float(acc_str.split()[1].replace("%", ""))
-                        except (IndexError, ValueError):
-                            return 0.0
-                    
-                    # Compute average accuracy for each difficulty level
-                    avg_easy = sum(parse_accuracy(row[5]) for row in table_data) / len(table_data)
-                    avg_medium = sum(parse_accuracy(row[6]) for row in table_data) / len(table_data)
-                    avg_hard = sum(parse_accuracy(row[7]) for row in table_data) / len(table_data)
-                    
-                    accuracies = {"Easy": avg_easy, "Medium": avg_medium, "Hard": avg_hard}
-                    focus_needed_level = min(accuracies, key=accuracies.get)
-                    strength_level = max(accuracies, key=accuracies.get)
-                    
-                    focus_needed = f"{focus_needed_level} ({accuracies[focus_needed_level]:.2f}% Accuracy)"
-                    strength = f"{strength_level} ({accuracies[strength_level]:.2f}% Accuracy)"
-                    
-                    pdf_data = generate_pdf_report(
-                        student_name,
-                        total_days_practiced, 
-                        total_possible_days, 
-                        focus_needed, 
-                        strength,
-                        table_data  # pass the same table_data list
+                    # Enhanced styling for the dataframe
+                    st.dataframe(
+                        df,
+                        hide_index=True,
+                        column_config={
+                            "Topic": st.column_config.TextColumn(
+                                "Topic",
+                                help="Main subject area",
+                                width="medium"
+                            ),
+                            "Sub-Topic": st.column_config.TextColumn(
+                                "Sub-Topic",
+                                help="Specific area of study",
+                                width="medium"
+                            ),
+                            "Days Practiced": st.column_config.NumberColumn(
+                                "Practice Days",
+                                help="Number of days spent practicing",
+                                format="%d days"
+                            ),
+                            "Easy Accuracy": st.column_config.TextColumn(
+                                "Easy Level",
+                                help="Performance in easy questions"
+                            ),
+                            "Medium Accuracy": st.column_config.TextColumn(
+                                "Medium Level",
+                                help="Performance in medium questions"
+                            ),
+                            "Hard Accuracy": st.column_config.TextColumn(
+                                "Hard Level",
+                                help="Performance in hard questions"
+                            )
+                        }
                     )
 
-                    st.download_button(
-                        label="Download PDF Report",
-                        data=pdf_data,
-                        file_name=f"{student_name}_Weekly_Progress.pdf",
-                        mime="application/octet-stream"
-                    )
-
-
-                    # --- End PDF Generation Logic ---
+                with report_tabs[2]:
+                    st.markdown("### Personalized Recommendations")
                     
-                else:
-                    st.info("No data available for the selected filters.")
+                    # Create recommendations based on performance
+                    if avg_accuracies[focus_needed_level] < 40:
+                        st.error("#### Priority Areas for Improvement")
+                        st.markdown("""
+                            - 📚 **Additional practice needed** in {} difficulty questions
+                            - 👨‍🏫 Consider scheduling **one-on-one sessions** with the teacher
+                            - 🔄 Review fundamental concepts in challenging topics
+                        """.format(focus_needed_level))
+                        
+                    elif avg_accuracies[focus_needed_level] < 70:
+                        st.info("#### Suggested Focus Areas")
+                        st.markdown("""
+                            - 📝 Continue practicing {} level questions
+                            - 🎯 Focus on topics with lower accuracy scores
+                            - ✍️ Review incorrect answers to understand mistakes
+                        """.format(focus_needed_level))
+                        
+                    else:
+                        st.success("#### Keep Up the Great Work!")
+                        st.markdown("""
+                            - 🚀 Challenge yourself with harder questions
+                            - 👥 Consider helping peers who might be struggling
+                            - 📚 Explore more advanced topics
+                        """)
+
+                    # Add specific topic recommendations
+                    st.markdown("### Topic-Specific Focus Areas")
+                    for topic, subtopic, _, _, _, easy, medium, hard in table_data:
+                        if any(acc.startswith('🔴') for acc in [easy, medium, hard]):
+                            st.warning(f"**{topic} - {subtopic}**")
+                            st.markdown("- Requires additional attention, especially in:")
+                            if easy.startswith('🔴'):
+                                st.markdown("  - Fundamental concepts")
+                            if medium.startswith('🔴'):
+                                st.markdown("  - Application problems")
+                            if hard.startswith('🔴'):
+                                st.markdown("  - Advanced concepts")
