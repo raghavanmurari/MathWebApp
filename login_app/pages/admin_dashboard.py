@@ -170,7 +170,7 @@ with tab2:
     if search_name:
         users = find_users_by_name_pattern(search_name)
         if users:
-            st.write(f"Found {len(users)} matching users:")
+            # st.write(f"Found {len(users)} matching users:")
             for user in users:
                 user_email = user['email']
                 user_key = f"user_{user_email}"
@@ -190,7 +190,6 @@ with tab2:
                             status_text = "disabled" if current_status else "enabled"
                             st.success(f"Successfully {status_text} user: {user['name']} ({user_email})")
                             time.sleep(1)
-                            st.rerun()
                         else:
                             st.error("Failed to update user status.")
                     except Exception as e:
@@ -406,7 +405,6 @@ with tab6:
                                 if success:
                                     st.success(f"{update_choice} successfully updated to {new_email}")
                                     time.sleep(1)
-                                    # st.rerun()
                                 else:
                                     st.error("Failed to update email. Please try again.")
         else:
