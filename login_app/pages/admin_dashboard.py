@@ -277,10 +277,10 @@ with tab4:
         ]
 
         df = pd.DataFrame(table_data, columns=columns)
-        # st.dataframe(df, use_container_width=True, hide_index=True)
+        
         # Build Grid Options
         gb = GridOptionsBuilder.from_dataframe(df)
-        gb.configure_pagination(paginationAutoPageSize=True)  # Add pagination
+        gb.configure_pagination(paginationAutoPageSize=True)  
         gb.configure_side_bar()                               # Add a sidebar with filters
         gridOptions = gb.build()
 

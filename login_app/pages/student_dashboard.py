@@ -5,6 +5,7 @@ from bson.objectid import ObjectId
 from services.question_service import get_current_question, update_student_response
 from services.student_service import get_assignment_progress, resume_assignment
 from utils.session_manager import clear_session
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.user_role = None
@@ -62,7 +63,6 @@ col1, col2 = st.columns([0.7, 0.3])
 
 with col1:
     st.markdown(f"<h1 style='margin-top:-30px;'>Welcome, {student_name}! 👋</h1>", unsafe_allow_html=True)
-# st.title(f"Welcome, {student_name}! 👋")
 with col2:
     if st.button("Logout", help="Click to logout"):
         clear_session()
@@ -81,10 +81,6 @@ if progress_data:
             with col1:
                 st.markdown(f"<h4 style='color:#2E3A87; font-weight:bold;'>{data['topic']}</h4>", unsafe_allow_html=True)
                 st.markdown(f"<h5 style='color:#4A5EA8; font-weight:semi-bold;'>{data['sub_topic']}</h5>", unsafe_allow_html=True)
-                # st.markdown(f"<p style='font-size:16px;'><b>Total Questions:</b> {data['total_questions']} &nbsp;&nbsp;|&nbsp;&nbsp; "
-                #             f"<b>Attempted:</b> {data['attempted']} &nbsp;&nbsp;|&nbsp;&nbsp; "
-                #             f"<b>Correct:</b> {data['correct']} &nbsp;&nbsp;|&nbsp;&nbsp; "
-                #             f"<b>Deadline:</b> {data.get('deadline', 'No deadline set')}</p>", unsafe_allow_html=True)
                 st.markdown(
                     f"<p style='font-size:16px; white-space: nowrap;'><b>Total Questions:</b> {data['total_questions']} &nbsp;&nbsp;|&nbsp;&nbsp; "
                     f"<b>Attempted:</b> {data['attempted']} &nbsp;&nbsp;|&nbsp;&nbsp; "

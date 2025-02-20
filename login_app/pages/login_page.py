@@ -30,7 +30,6 @@ if 'new_password_mode' not in st.session_state:
 load_session()
 
 st.title("🔢 MAD")
-# st.markdown("##### :sparkles: Math A Day keeps errors at bay! :sparkles:")
 
 st.markdown(
     """
@@ -42,14 +41,12 @@ st.markdown(
 )
 
 
-# st.markdown("## Math A Day keeps errors at bay!")
 # Email validation pattern
 email_pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
 def show_login_form():
     email = st.text_input("Email", placeholder="Enter your email (e.g., user@example.com)")
     password = st.text_input("Password", type="password", placeholder="Enter your password")
-    # remember_me = st.checkbox("Remember Me", value=st.session_state.get('remember_me', False))
     remember_me = False  # Add this line instead
     
     col1, col2 = st.columns([1, 1])
@@ -125,8 +122,6 @@ def show_new_password_form():
     
     new_password = st.text_input("New Password", type="password", key="new_password_input")
     confirm_password = st.text_input("Confirm Password", type="password", key="confirm_password_input")
-    # update_btn = st.button("Update Password")
-    # back_btn = st.button("Back to Login")
         # Create two columns for the buttons
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -137,8 +132,7 @@ def show_new_password_form():
     if update_btn:
         if new_password != confirm_password:
             st.error("Passwords do not match!")
-        # elif len(new_password) < 6:
-        #     st.error("Password must be at least 6 characters long!")
+
         else:
             success, message = update_password(st.session_state.reset_email, new_password)
             if success:

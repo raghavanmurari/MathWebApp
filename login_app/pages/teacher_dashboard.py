@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 from pages.create_assignment import show_create_assignment
 from utils.progress_tracking import ProgressTracker
 import pandas as pd
-from utils.pdf_generator import generate_pdf_report
+# from utils.pdf_generator import generate_pdf_report
 from datetime import datetime
 
 if "logged_in" not in st.session_state:
@@ -95,14 +95,12 @@ def get_accuracy_color(accuracy):
 
 with tab1:
     st.header("Welcome to the Teacher Dashboard")
-    # col1, col2, col3 = st.columns(3)
+    
     col1, col2 = st.columns(2)
     with col1:
         st.metric(label="Total Students", value=total_students)
     with col2:
         st.metric(label="Active Assignments", value=active_assignments)
-    # with col3:
-    #     st.metric(label="Average Score", value="85%", delta="+5%")  # Placeholder, update later
 
 with tab2:
     st.header("Student Management")
@@ -146,7 +144,6 @@ with tab4:
                             topic_name = topic_doc.get("name", "Unknown Topic")
                     except Exception as e:
                         st.warning(f"Error fetching topic name: {str(e)}")
-                # sub_topics = ", ".join(assignment.get("sub_topics", ["No sub-topics"]))
                 # Instead of joining them, just get the sub_topics list
                 subtopics_list = assignment.get("sub_topics", ["No sub-topics"])
                 for single_subtopic in subtopics_list:
