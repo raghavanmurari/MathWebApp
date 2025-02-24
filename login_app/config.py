@@ -12,10 +12,13 @@
 
 import streamlit as st
 import pymongo
+import os
 
 # Use the MongoDB Atlas URI from Streamlit secrets if available,
 # otherwise fall back to the local URI (for development)
-MONGO_URI = st.secrets["mongodb"]["uri"] if "mongodb" in st.secrets else "mongodb://localhost:27017"
+# MONGO_URI = st.secrets["mongodb"]["uri"] if "mongodb" in st.secrets else "mongodb://localhost:27017"
+
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = "adaptive_math_db"
 
 def get_db():

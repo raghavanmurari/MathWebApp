@@ -8,11 +8,18 @@ from email.mime.multipart import MIMEMultipart
 from database.user_dao import find_user, update_user
 from utils.security import hash_password
 
-# SMTP Configuration
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_EMAIL = "mathwebapp7@gmail.com"
-SMTP_PASSWORD = "aoof ryvs oymz mpai"  # Updated App Password
+# # SMTP Configuration
+# SMTP_SERVER = "smtp.gmail.com"
+# SMTP_PORT = 587
+# SMTP_EMAIL = "mathwebapp7@gmail.com"
+# SMTP_PASSWORD = "aoof ryvs oymz mpai"  # Updated App Password
+
+import os
+
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_EMAIL = os.getenv("SMTP_EMAIL", "mathwebapp7@gmail.com")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "aoof ryvs oymz mpai")
 
 print("DEBUG: Using email settings:")
 print(f"SMTP_SERVER: {SMTP_SERVER}")
