@@ -12,6 +12,17 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # or "auto" or "expanded"
 )
 
+# Immediately inject CSS to hide the sidebar
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # Initialize session state if not already set
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
