@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from database.user_dao import find_user, update_user
 from utils.security import hash_password
+from utils.security import hash_password, validate_password
 
 # # SMTP Configuration
 # SMTP_SERVER = "smtp.gmail.com"
@@ -136,11 +137,16 @@ def update_password(email, new_password):
             print(f"DEBUG: User not found for password update: {email}")
             return False, "User not found. Cannot reset password."
 
+        # NEW: Validate the new password against the restrictions
+        if not validate_password(new_password):
+            return False, ("New password does not meet the security requirements. "
+                           "It must be at least 8 characters long and include one uppercase letter, "
+                           "one lowercase letter, one digit, and one special character.")
+
         print("DEBUG: Attempting to hash password")
         hashed_password = hash_password(new_password)
         print(f"DEBUG: Password successfully hashed: {hashed_password[:20]}...")
 
-        # Always use 'password' as the field name for consistency
         update_data = {
             "password": hashed_password,
             "updated_at": datetime.utcnow()
