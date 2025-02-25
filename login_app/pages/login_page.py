@@ -34,7 +34,7 @@ st.title("🔢 MAD")
 st.markdown(
     """
     <h5 style="text-align: center;">
-        ✨ Math A Day keeps errors at bay! ✨
+        ✨ Math A Day: Watch Your Confidence Grow and Play! ✨
     </h5>
     """,
     unsafe_allow_html=True

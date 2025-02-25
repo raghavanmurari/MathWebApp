@@ -1,4 +1,26 @@
 import bcrypt
+import re
+
+def validate_password(password: str) -> bool:
+    """
+    Check that the password:
+    - is at least 8 characters long
+    - contains at least one uppercase letter
+    - contains at least one lowercase letter
+    - contains at least one digit
+    - contains at least one special character
+    """
+    if len(password) < 8:
+        return False
+    if not re.search(r'[A-Z]', password):
+        return False
+    if not re.search(r'[a-z]', password):
+        return False
+    if not re.search(r'\d', password):
+        return False
+    if not re.search(r'[\W_]', password):  # Matches any non-alphanumeric character
+        return False
+    return True
 
 def hash_password(password):
     """Hashes a password using bcrypt."""

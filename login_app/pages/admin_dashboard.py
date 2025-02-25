@@ -7,7 +7,7 @@ from database.user_dao import (
     find_user, save_user, get_all_users, toggle_user_status, 
     find_users_by_name_pattern, update_user, reset_password
 )
-from utils.security import hash_password
+from utils.security import hash_password, validate_password
 from utils.session_manager import clear_session, load_session
 import pymongo
 from bson.objectid import ObjectId
@@ -131,13 +131,16 @@ with tab1:
                 st.error("Please fill in all required fields.")
             elif role == "student" and not parent_email:
                 st.error("Parent email is required for student accounts.")
+                # NEW: Validate the password using validate_password
+            elif not validate_password(password):
+                st.error("Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one digit, and one special character.")
             else:
                 # Proceed to build the new_user dictionary and save it
                 new_user = {
                     "_id": ObjectId(),
                     "name": name,
                     "email": email.lower().strip(),
-                    "password_hash": hash_password(password),
+                    "password": hash_password(password),
                     "role": role,
                     "gender": gender,
                     "active": True,
@@ -221,17 +224,20 @@ with tab3:
                         type="password",
                         key=f"pwd_{user['email']}"
                     )
-
-                    if st.button("Reset Password", key=f"reset_{user['email']}"):
-                        if new_password:
-                            try:
-                                success = reset_password(user['email'], new_password)
-                                if success:
-                                    st.success(f"Password successfully reset for {user['email']}")
-                                else:
-                                    st.error("Failed to reset password. Please try again.")
-                            except Exception as e:
-                                st.error(f"An error occurred: {str(e)}")
+                if st.button("Reset Password", key=f"reset_{user['email']}"):
+                    if not new_password:
+                        st.error("Please enter a new password")
+                    elif not validate_password(new_password):
+                        st.error("Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one digit, and one special character.")
+                    else:
+                        try:
+                            success = reset_password(user['email'], new_password)
+                            if success:
+                                st.success(f"Password successfully reset for {user['email']}")
+                            else:
+                                st.error("Failed to reset password. Please try again.")
+                        except Exception as e:
+                            st.error(f"An error occurred: {str(e)}")
                         else:
                             st.error("Please enter a new password")
         else:
