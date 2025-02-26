@@ -16,7 +16,7 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    [data-testid="stSidebar"] {
+    [data-testid="collapsedControl"] {
         display: none;
     }
     </style>
