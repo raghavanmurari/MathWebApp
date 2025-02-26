@@ -1,3 +1,5 @@
+import __hide_pages__  # This must be the first import
+
 import streamlit as st
 from utils.session_manager import load_session, clear_session
 from utils.navigation import redirect_to_dashboard, redirect_to_login

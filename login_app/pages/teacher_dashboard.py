@@ -1,10 +1,10 @@
 import streamlit as st
 from utils.session_manager import clear_session, load_session
-from pages.student_list import display_students
-from pages.display_question_bank import display_question_bank, get_db  
+from screens.student_list import display_students
+from screens.display_question_bank import display_question_bank, get_db  
 from database.db_connection import get_user_collection, get_assignment_collection
 from bson.objectid import ObjectId  
-from pages.create_assignment import show_create_assignment
+from screens.create_assignment import show_create_assignment
 from utils.progress_tracking import ProgressTracker
 import pandas as pd
 # from utils.pdf_generator import generate_pdf_report
