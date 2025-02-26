@@ -12,17 +12,44 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # or "auto" or "expanded"
 )
 
-# Immediately inject CSS to hide the sidebar
+# Immediately inject CSS to hide the sidebar and all navigation elements
 st.markdown(
     """
     <style>
-    [data-testid="collapsedControl"] {
-        display: none;
+    /* Hide sidebar expansion button and the entire sidebar nav */
+    .stApp header {
+        display: none !important;
+    }
+    
+    div[data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    
+    section[data-testid="stSidebar"] {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    /* Hide the hamburger menu and other Streamlit UI elements */
+    #MainMenu {
+        visibility: hidden !important;
+    }
+    
+    div[data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+    
+    /* Ensure no gap where sidebar would be */
+    .main .block-container {
+        padding-left: 2rem !important; 
+        max-width: 100% !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 # Initialize session state if not already set
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
