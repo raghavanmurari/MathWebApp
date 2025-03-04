@@ -2,6 +2,14 @@
 import streamlit as st
 import pandas as pd
 from database.db_connection import get_db
+# from pages.question_page import convert_latex
+
+
+def convert_latex(text):
+    """Convert Excel LaTeX format to Streamlit-compatible format."""
+    if text and isinstance(text, str):
+        return text.replace('\\(', '$').replace('\\)', '$')
+    return text
 
 def display_question_bank():
     st.header("Question Bank Overview")
@@ -92,3 +100,42 @@ def display_question_bank():
         )
     else:
         st.info("No questions found in the database.")
+
+
+def view_questions():
+    st.header("View Questions")
+    db = get_db()
+    questions_col = db["questions"]
+
+    # Dropdown for Topics
+    topics = questions_col.distinct("topic")
+    selected_topic = st.selectbox("Select Topic", options=topics)
+
+    # Dropdown for Sub-Topics
+    subtopics = questions_col.distinct("sub_topic", {"topic": selected_topic})
+    selected_subtopic = st.selectbox("Select Sub-Topic", options=subtopics)
+
+    # Query the filtered questions
+    query = {"topic": selected_topic, "sub_topic": selected_subtopic}
+    results = list(questions_col.find(query))
+
+    if results:
+        # Initialize a question counter
+        question_number = 1
+        
+        for q in results:
+            # Convert LaTeX if needed
+            question_text = convert_latex(q.get('description', 'No description'))
+            solution_text = convert_latex(q.get('solution', 'No solution'))
+
+            # Combine question number, question text, and difficulty
+            st.markdown(
+                f"**Question {question_number}:** {question_text} &emsp;&emsp;"
+                f"**Difficulty:** {q.get('difficulty', 'N/A')}"
+            )
+            st.markdown(f"**Solution:** {solution_text}")
+            st.markdown("---")
+
+            question_number += 1
+    else:
+        st.info("No questions found for the selected criteria.")

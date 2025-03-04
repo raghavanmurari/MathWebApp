@@ -36,7 +36,7 @@ def save_session():
 
 def clear_session():
     """Ensure all session variables are reset on logout."""
-    st.write("DEBUG: Clearing session...")
+    # st.write("DEBUG: Clearing session...")
     # Remove session file if it exists
     if os.path.exists(SESSION_FILE):
         os.remove(SESSION_FILE)

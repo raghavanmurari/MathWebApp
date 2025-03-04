@@ -1,12 +1,15 @@
 import streamlit as st
 from utils.session_manager import clear_session, load_session
 from pages.student_list import display_students
-from pages.display_question_bank import display_question_bank, get_db  
+# from pages.display_question_bank import display_question_bank, get_db  
 from database.db_connection import get_user_collection, get_assignment_collection
 from bson.objectid import ObjectId  
 from pages.create_assignment import show_create_assignment
 from utils.progress_tracking import ProgressTracker
 import pandas as pd
+from pages.display_question_bank import display_question_bank, view_questions, get_db
+
+
 # from utils.pdf_generator import generate_pdf_report
 from datetime import datetime
 
@@ -66,13 +69,15 @@ with col2:
         clear_session()
         st.switch_page("pages/login_page.py")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🏠 Dashboard",
     "👩‍🏫 List of Students",
     "📚 Question Bank",
     "📝 Create Assignments",
-    "📊 Generate Reports"
+    "📊 Generate Reports",
+    "🔎 View Questions"  # New tab
 ])
+
 
 # ✅ Fetch Total Students
 users_collection = get_user_collection()
@@ -620,3 +625,7 @@ with tab5:
                                 st.markdown("  - Application problems")
                             if hard.startswith('🔴'):
                                 st.markdown("  - Advanced concepts")
+
+
+with tab6:
+    view_questions()

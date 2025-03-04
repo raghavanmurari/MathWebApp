@@ -15,18 +15,18 @@ def get_assignment_progress(student_id):
         questions_collection = db["questions"]
         responses_collection = db["responses"]
 
-        print(f"Fetching progress for student_id: {student_id}")
+        # print(f"Fetching progress for student_id: {student_id}")
         
         # Get all active assignments for the student
         active_assignments = list(assignments_collection.find(
             {"students": ObjectId(student_id), "status": "active"}
         ))
-        print(f"Found active assignments: {len(active_assignments)}")
+        # print(f"Found active assignments: {len(active_assignments)}")
 
         progress_data = []
 
         for assignment in active_assignments:
-            print(f"Processing assignment: {assignment['_id']}")
+            # print(f"Processing assignment: {assignment['_id']}")
             
             # Get topic data
             topic_data = topics_collection.find_one({"_id": assignment["topic_id"]})
@@ -43,7 +43,7 @@ def get_assignment_progress(student_id):
             elif deadline is None:
                 deadline = "2025-02-22"  # Set a default deadline if none exists
             
-            print(f"Deadline for assignment {assignment['_id']}: {deadline}")
+            # print(f"Deadline for assignment {assignment['_id']}: {deadline}")
 
             if not topic or not sub_topic:
                 continue
@@ -76,7 +76,7 @@ def get_assignment_progress(student_id):
         return progress_data
         
     except Exception as e:
-        print(f"ERROR in get_assignment_progress: {str(e)}")
+        # print(f"ERROR in get_assignment_progress: {str(e)}")
         return []
     
     
@@ -88,7 +88,7 @@ def resume_assignment(student_id, topic, sub_topic):
         
         topic_doc = topics.find_one({"name": topic})
         if not topic_doc:
-            print(f"Topic not found: {topic}")
+            # print(f"Topic not found: {topic}")
             return None
 
         # Look for an existing assignment
@@ -100,7 +100,7 @@ def resume_assignment(student_id, topic, sub_topic):
         })
         
         if assignment:
-            print(f"Found existing assignment for sub-topic: {sub_topic}")
+            # print(f"Found existing assignment for sub-topic: {sub_topic}")
             return str(assignment["_id"])
         else:
             # Create new assignment with deadline
@@ -113,9 +113,9 @@ def resume_assignment(student_id, topic, sub_topic):
                 "deadline": datetime(2025, 2, 22)  # Set deadline to Feb 22, 2025
             }
             result = assignments.insert_one(new_assignment)
-            print(f"Created new assignment with ID: {result.inserted_id}")
+            # print(f"Created new assignment with ID: {result.inserted_id}")
             return str(result.inserted_id)
                 
     except Exception as e:
-        print(f"ERROR in resume_assignment: {str(e)}")
+        # print(f"ERROR in resume_assignment: {str(e)}")
         return None

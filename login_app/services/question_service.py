@@ -51,32 +51,32 @@ def get_current_question():
     responses_collection = db["responses"]
     topics_collection = db["topics"]
 
-    print("\n--- DEBUGGING get_current_question() ---")
-    print(f"Assignment ID: {assignment_id}")
-    print(f"Student ID: {student_id}")
+    # print("\n--- DEBUGGING get_current_question() ---")
+    # print(f"Assignment ID: {assignment_id}")
+    # print(f"Student ID: {student_id}")
 
     # Get the assignment details
     assignment = assignments_collection.find_one({"_id": ObjectId(assignment_id)})
     if not assignment:
-        print("❌ ERROR: Assignment not found!")
+        # print("❌ ERROR: Assignment not found!")
         st.error("Assignment not found.")
         return None
 
     # Get the topic details
     topic = topics_collection.find_one({"_id": assignment["topic_id"]})
     if not topic:
-        print("❌ ERROR: Topic not found!")
+        # print("❌ ERROR: Topic not found!")
         st.error("Topic not found.")
         return None
 
     # Get current sub-topic
     current_sub_topic = assignment.get("sub_topics", [])[0] if assignment.get("sub_topics") else None
     if not current_sub_topic:
-        print("❌ ERROR: No sub-topic found in assignment!")
+        # print("❌ ERROR: No sub-topic found in assignment!")
         st.error("No sub-topic found in assignment.")
         return None
 
-    print(f"Topic: {topic['name']}, Sub-topic: {current_sub_topic}")
+    # print(f"Topic: {topic['name']}, Sub-topic: {current_sub_topic}")
 
     # Fetch questions for this specific topic and sub-topic
     all_questions = list(questions_collection.find({
@@ -85,10 +85,10 @@ def get_current_question():
     }))
     total_questions = len(all_questions)
 
-    print(f"Total Questions in Sub-topic: {total_questions}")
+    # print(f"Total Questions in Sub-topic: {total_questions}")
 
     if total_questions == 0:
-        print("❌ ERROR: No questions found for this sub-topic!")
+        # print("❌ ERROR: No questions found for this sub-topic!")
         st.error("No questions found for this sub-topic.")
         return None
 
@@ -106,16 +106,16 @@ def get_current_question():
     )
     answered_questions_str = {str(q_id) for q_id in answered_questions}
 
-    print(f"Answered Questions in current sub-topic: {len(answered_questions_str)}")
+    # print(f"Answered Questions in current sub-topic: {len(answered_questions_str)}")
 
     # Filter unanswered questions
     unanswered_questions = [q for q in all_questions if str(q["_id"]) not in answered_questions_str]
     remaining_questions = len(unanswered_questions)
 
-    print(f"Remaining Unanswered Questions in Sub-topic: {remaining_questions}")
+    # print(f"Remaining Unanswered Questions in Sub-topic: {remaining_questions}")
 
     if remaining_questions == 0:
-        print("🎉 Student has completed all questions in this sub-topic!")
+        # print("🎉 Student has completed all questions in this sub-topic!")
         st.success("🎉 Congratulations! You've completed all questions in this sub-topic!")
         if st.button("Return to Dashboard"):
             del st.session_state["current_assignment"]
@@ -128,7 +128,7 @@ def get_current_question():
 
     # Select the next unanswered question
     next_question = unanswered_questions[0]
-    print(f"Next Question ID: {next_question['_id']} - {next_question['description']}")
+    # print(f"Next Question ID: {next_question['_id']} - {next_question['description']}")
 
     return next_question
 
@@ -137,10 +137,10 @@ def get_current_question():
 
 def update_student_response(assignment_id, student_id, question_id, selected_answer):
     """Updates the student's response in the database."""
-    print("\n--- DEBUGGING update_student_response() ---")
-    print(f"Student ID: {student_id}")
-    print(f"Assignment ID: {assignment_id}")
-    print(f"Question ID: {question_id}")
+    # print("\n--- DEBUGGING update_student_response() ---")
+    # print(f"Student ID: {student_id}")
+    # print(f"Assignment ID: {assignment_id}")
+    # print(f"Question ID: {question_id}")
 
     try:
         db = get_db()
@@ -160,7 +160,7 @@ def update_student_response(assignment_id, student_id, question_id, selected_ans
             "is_correct": selected_answer.get("is_correct", False),
             "timestamp": datetime.now()
         }
-
+# 
         print("Saving response data:", response_data)
 
         # Save response
@@ -174,8 +174,8 @@ def update_student_response(assignment_id, student_id, question_id, selected_ans
             upsert=True
         )
 
-        print("Response saved successfully")
-        print(f"Matched: {result.matched_count}, Modified: {result.modified_count}")
+        # print("Response saved successfully")
+        # print(f"Matched: {result.matched_count}, Modified: {result.modified_count}")
         if result.upserted_id:
             print(f"New response ID: {result.upserted_id}")
             
@@ -185,12 +185,12 @@ def update_student_response(assignment_id, student_id, question_id, selected_ans
             "assignment_id": assignment_id_obj,
             "question_id": question_id_obj
         })
-        print("Verified saved response:", saved_response)
+        # print("Verified saved response:", saved_response)
 
         return True
 
     except Exception as e:
-        print(f"ERROR in update_student_response: {str(e)}")
+        # print(f"ERROR in update_student_response: {str(e)}")
         import traceback
         print(traceback.format_exc())
         return False
