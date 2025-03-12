@@ -1,12 +1,15 @@
 import streamlit as st
 from utils.session_manager import clear_session, load_session
-from screens.student_list import display_students
-from screens.display_question_bank import display_question_bank, get_db  
+from pages.student_list import display_students
+# from pages.display_question_bank import display_question_bank, get_db  
 from database.db_connection import get_user_collection, get_assignment_collection
 from bson.objectid import ObjectId  
-from screens.create_assignment import show_create_assignment
+from pages.create_assignment import show_create_assignment
 from utils.progress_tracking import ProgressTracker
 import pandas as pd
+from pages.display_question_bank import display_question_bank, view_questions, get_db
+
+
 # from utils.pdf_generator import generate_pdf_report
 from datetime import datetime
 
@@ -66,13 +69,15 @@ with col2:
         clear_session()
         st.switch_page("pages/login_page.py")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🏠 Dashboard",
     "👩‍🏫 List of Students",
     "📚 Question Bank",
     "📝 Create Assignments",
-    "📊 Generate Reports"
+    "📊 Generate Reports",
+    "🔎 View Questions"  # New tab
 ])
+
 
 # ✅ Fetch Total Students
 users_collection = get_user_collection()
@@ -380,7 +385,6 @@ with tab5:
                         ])
 
                 if table_data:
-                    # Calculate overall accuracies
                     def extract_accuracy(accuracy_str):
                         # Remove emoji and % symbol, convert to float
                         return float(accuracy_str.split()[1].replace('%', ''))
@@ -394,6 +398,57 @@ with tab5:
                     # Determine focus area and strength
                     focus_needed_level = min(avg_accuracies, key=avg_accuracies.get)
                     strength_level = max(avg_accuracies, key=avg_accuracies.get)
+
+                    # Get the current assignment IDs that the user has selected through the UI
+                    selected_assignment_ids = []
+                    if "All Topics" in selected_topic_subtopics:
+                        # If "All Topics" is selected, include all active assignments
+                        selected_assignment_ids = [assignment["_id"] for assignment in active_assignments]
+                    else:
+                        # Otherwise, only include assignments for the selected topics/subtopics
+                        for assignment in active_assignments:
+                            topic_id = assignment.get("topic_id")
+                            if topic_id:
+                                topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
+                                if topic_doc:
+                                    topic_name = topic_doc.get("name")
+                                    for subtopic in assignment.get("sub_topics", []):
+                                        display_string = f"{topic_name} - {subtopic}"
+                                        if display_string in selected_topic_subtopics:
+                                            selected_assignment_ids.append(assignment["_id"])
+                                            break
+
+                    # Calculate accuracy for just the selected assignments
+                    total_correct = 0
+                    total_questions = 0
+
+                    # Query responses only for the selected assignments
+                    filtered_responses = list(responses_collection.find({
+                        "student_id": ObjectId(student_id),
+                        "assignment_id": {"$in": selected_assignment_ids}
+                    }))
+
+                    for response in filtered_responses:
+                        if response.get("is_correct"):
+                            total_correct += 1
+                        total_questions += 1
+
+                    # Add debug text to verify the calculation
+                    # st.text(f"Debug: {total_correct} correct out of {total_questions} questions")
+                    # Calculate overall accuracies
+                    # def extract_accuracy(accuracy_str):
+                    #     # Remove emoji and % symbol, convert to float
+                    #     return float(accuracy_str.split()[1].replace('%', ''))
+
+                    # avg_accuracies = {
+                    #     "Easy": sum(extract_accuracy(row[5]) for row in table_data) / len(table_data),
+                    #     "Medium": sum(extract_accuracy(row[6]) for row in table_data) / len(table_data),
+                    #     "Hard": sum(extract_accuracy(row[7]) for row in table_data) / len(table_data)
+                    # }
+
+                    # # Determine focus area and strength
+                    # focus_needed_level = min(avg_accuracies, key=avg_accuracies.get)
+                    # strength_level = max(avg_accuracies, key=avg_accuracies.get)
 
             
             # Add this CSS at the beginning of your script where other styles are defined
@@ -472,7 +527,9 @@ with tab5:
                             accuracy=avg_accuracies[strength_level]
                         ), unsafe_allow_html=True)
                         
-                        overall_accuracy = sum(avg_accuracies.values()) / len(avg_accuracies)
+                        # overall_accuracy = sum(avg_accuracies.values()) / len(avg_accuracies)
+                        overall_accuracy = (total_correct / total_questions * 100) if total_questions > 0 else 0
+                        # st.text(f"Debug: {total_correct} correct out of {total_questions} questions")
                         st.markdown("""
                             <div class="metric-container" style="margin-top: 1rem;">
                                 <div class="stat-header">Overall Performance</div>
@@ -620,3 +677,7 @@ with tab5:
                                 st.markdown("  - Application problems")
                             if hard.startswith('🔴'):
                                 st.markdown("  - Advanced concepts")
+
+
+with tab6:
+    view_questions()

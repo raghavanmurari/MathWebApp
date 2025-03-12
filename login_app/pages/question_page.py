@@ -66,40 +66,81 @@ def check_subtopic_completion():
         assignment_id = st.session_state["current_assignment"]
         student_id = st.session_state.get("student_id")
         
+        if not assignment_id or not student_id:
+            print("Missing assignment_id or student_id")
+            return False
+        
+        # Convert string IDs to ObjectId if needed
+        assignment_obj_id = ObjectId(assignment_id) if isinstance(assignment_id, str) else assignment_id
+        student_obj_id = ObjectId(student_id) if isinstance(student_id, str) else student_id
+        
+        # Get assignment details
         assignments = db["assignments"]
-        assignment = assignments.find_one({"_id": ObjectId(assignment_id)})
+        assignment = assignments.find_one({"_id": assignment_obj_id})
         
         if not assignment:
+            print(f"No assignment found with ID: {assignment_id}")
             return False
             
-        questions = db["questions"]
-        responses = db["responses"]
-        
+        # Get topic details
         topics = db["topics"]
         topic_data = topics.find_one({"_id": assignment["topic_id"]})
-        sub_topic = assignment.get("sub_topics", [])[0] if assignment.get("sub_topics") else None
         
-        if not topic_data or not sub_topic:
+        # Get subtopic - assuming the first one if multiple exist
+        sub_topics = assignment.get("sub_topics", [])
+        if not sub_topics:
+            print("No sub_topics found in assignment")
             return False
             
-        topic_questions = questions.find({
+        sub_topic = sub_topics[0]
+        
+        if not topic_data:
+            print(f"No topic found with ID: {assignment['topic_id']}")
+            return False
+            
+        # Find all questions for this topic/subtopic
+        questions = db["questions"]
+        topic_questions_cursor = questions.find({
             "topic": topic_data["name"],
             "sub_topic": sub_topic
         })
-        question_ids = [q["_id"] for q in topic_questions]
         
+        # Convert cursor to list and get IDs
+        question_list = list(topic_questions_cursor)
+        if not question_list:
+            print(f"No questions found for topic '{topic_data['name']}' and sub_topic '{sub_topic}'")
+            return False
+            
+        question_ids = [q["_id"] for q in question_list]
+        
+        # Get all responses for this student and assignment
+        responses = db["responses"]
         attempted_questions = responses.distinct(
             "question_id",
             {
-                "assignment_id": ObjectId(assignment_id),
-                "student_id": ObjectId(student_id)
+                "assignment_id": assignment_obj_id,
+                "student_id": student_obj_id
             }
         )
         
-        return all(q_id in attempted_questions for q_id in question_ids)
+        # Convert ObjectId to string for comparison if needed
+        attempted_str = [str(q_id) for q_id in attempted_questions]
+        question_str = [str(q_id) for q_id in question_ids]
+        
+        # Check if all questions are attempted
+        all_attempted = all(q_id in attempted_questions for q_id in question_ids)
+        
+        if not all_attempted:
+            # For debugging: which questions are missing
+            missing = [str(q_id) for q_id in question_ids if q_id not in attempted_questions]
+            print(f"Missing responses for questions: {missing}")
+        
+        return all_attempted
         
     except Exception as e:
         print(f"Error checking completion: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return False
 
 # Initialize session states
@@ -125,6 +166,15 @@ st.markdown("""
     }
     .stButton button {
         width: 100%;
+    }
+    
+    /* Style for highlighted option */
+    .selected-option {
+        background-color: #ffedea; 
+        padding: 8px;
+        border-radius: 5px;
+        border-left: 4px solid #FF4B4B;
+        margin: 5px 0;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -170,30 +220,64 @@ if current_question:
     if options:
         display_values = []
         option_mapping = {}
+        original_texts = {}  # Store original text without ✅/❌
 
         # Create unique key for this question
         question_key = f"selected_option_{str(current_question['_id'])}"
 
+        # Find the selected option text if already submitted
+        selected_original_text = None
+        if st.session_state.submitted_answer and "last_selected_option" in st.session_state:
+            for option in options:
+                if option == st.session_state.last_selected_option:
+                    selected_original_text = convert_latex(option.get('text', ''))
+                    break
+        
         # If user has submitted, show the ✅ or ❌ next to the options
         for option in options:
             display_text = convert_latex(option.get('text', ''))
-            if st.session_state.submitted_answer:
-                # If this option is correct, add a check
+            original_texts[display_text] = display_text  # Store original text
+            
+            # Add highlighting prefix for the selected option
+            if st.session_state.submitted_answer and selected_original_text == display_text:
+                # Mark this option as highlighted
                 if option.get("is_correct"):
                     display_text += " ✅"
-                # If this option is the user's chosen one but not correct, add a cross
-                elif question_key in st.session_state and display_text == st.session_state[question_key]:
+                else:
                     display_text += " ❌"
+            elif st.session_state.submitted_answer:
+                # For other options just add checkmark if correct
+                if option.get("is_correct"):
+                    display_text += " ✅"
+            
             display_values.append(display_text)
             option_mapping[display_text] = option
 
+        # Display the radio options
         selected = st.radio(
-            "",# "Choose your answer:",
+            "",  # "Choose your answer:"
             options=display_values,
             label_visibility="visible",
             key=question_key,
-            index=None
+            index=None,
+            disabled=st.session_state.submitted_answer  # Disable after submission
         )
+        
+        # Display the highlighted option separately after submission
+        if st.session_state.submitted_answer and selected_original_text:
+            # Get the selected text with any checkmarks
+            selected_display = None
+            for display_text in display_values:
+                if display_text.startswith(selected_original_text):
+                    selected_display = display_text
+                    break
+                    
+            if selected_display:
+                st.markdown(f"""
+                <div class="selected-option">
+                <strong>Your answer:</strong> {selected_display}
+                </div>
+                """, unsafe_allow_html=True)
 
         col1, col2, col3 = st.columns([1, 1, 1])
         

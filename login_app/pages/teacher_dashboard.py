@@ -151,9 +151,8 @@ with tab4:
                         st.warning(f"Error fetching topic name: {str(e)}")
                 # Instead of joining them, just get the sub_topics list
                 subtopics_list = assignment.get("sub_topics", ["No sub-topics"])
-                for single_subtopic in subtopics_list:
-                    created_str = assignment.get("created_at").strftime("%Y-%m-%d %H:%M") if assignment.get("created_at") else "No date"
-                    deadline_str = assignment.get("deadline").strftime("%Y-%m-%d %H:%M") if assignment.get("deadline") else "No deadline"
+                created_str = assignment.get("created_at").strftime("%Y-%m-%d %H:%M") if assignment.get("created_at") else "No date"
+                deadline_str = assignment.get("deadline").strftime("%Y-%m-%d %H:%M") if assignment.get("deadline") else "No deadline"
 
                 deadline = assignment.get("deadline", "No deadline").strftime("%Y-%m-%d %H:%M") if assignment.get("deadline") else "No deadline"
                 status = assignment.get("status", "Unknown")
@@ -200,7 +199,7 @@ with tab4:
 
                 assignment_data.append({
                     "Topic": topic_name,  # Add Topic as first column
-                    "Sub-Topics": single_subtopic,
+                    "Sub-Topics": ", ".join(subtopics_list),
                     "Created": assignment.get("created_at").strftime("%Y-%m-%d %H:%M") if assignment.get("created_at") else "No date",
                     "Deadline": deadline,
                     "Status": status,
