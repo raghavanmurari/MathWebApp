@@ -1,0 +1,39 @@
+// Get all topics with their sub_topics and their topic_id
+let topicsToInsert = db.questions.aggregate([
+  { 
+    $group: { 
+      _id: "$topic",  // Group by the topic field
+      name: { $first: "$topic" },
+      sub_topics: { $addToSet: "$sub_topic" },
+      topic_id: { $first: "$topic_id" }  // This gets the ObjectId from topic_id field
+    } 
+  }
+]).toArray();
+
+// Get existing topic names in the topics collection
+let existingTopicNames = db.topics.distinct("name");
+
+// Filter out topics that already exist by name
+let newTopics = topicsToInsert.filter(topic => !existingTopicNames.includes(topic._id));
+
+// Check if topic_id is already an ObjectId, if not convert it
+newTopics = newTopics.map(topic => {
+  // Create the document with the right structure
+  return {
+    // If topic_id exists and is valid, use it; otherwise generate a new ObjectId
+    _id: (topic.topic_id && ObjectId.isValid(topic.topic_id)) ? 
+         topic.topic_id : 
+         new ObjectId(),
+    name: topic._id,      // Use the topic name as name
+    sub_topics: topic.sub_topics,
+    created_at: new Date()
+  };
+});
+
+// Insert if there are any new topics
+if (newTopics.length > 0) {
+  db.topics.insertMany(newTopics);
+  print(`Added ${newTopics.length} new topics to the topics collection`);
+} else {
+  print("No new topics to add");
+}

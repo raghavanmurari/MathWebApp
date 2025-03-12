@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import os
+from bson import ObjectId
 
 def clean_value(value):
     """Clean and validate values to ensure MongoDB compatibility"""
@@ -65,6 +66,13 @@ def create_options_with_correct_answer(options_list, correct_answer):
             options.append(option)
     return options
 
+# First, create a custom JSON encoder class
+class MongoJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return {"$oid": str(obj)}
+        return super().default(obj)
+
 def convert_excel_to_mongo_json(excel_file):
     try:
         # Read both sheets
@@ -80,6 +88,10 @@ def convert_excel_to_mongo_json(excel_file):
         base_filename = os.path.splitext(os.path.basename(excel_file))[0]
         output_file = f"{base_filename}.json"
         topic = base_filename.split('_')[0] if '_' in base_filename else base_filename
+        
+        # Generate a unique ObjectId for this topic - DO NOT convert to string
+        topic_object_id = ObjectId()
+        print(f"Generated ObjectId for topic '{topic}': {topic_object_id}")
         
         # Initialize list to store questions
         questions = []
@@ -114,19 +126,20 @@ def convert_excel_to_mongo_json(excel_file):
                 "topic": topic,
                 "sub_topic": section_name,
                 "prerequisites": [],
-                "topic_id": "test-data"
+                "topic_id": topic_object_id  # Use the ObjectId directly (not converted to string)
             }
             
             questions.append(question)
         
-        # Save each question as a separate line (MongoDB Compass format)
+        # Save each question as a separate line (MongoDB Compass format) with custom encoder
         with open(output_file, 'w', encoding='utf-8') as f:
             for question in questions:
-                f.write(json.dumps(question, ensure_ascii=False) + '\n')
+                f.write(json.dumps(question, ensure_ascii=False, cls=MongoJSONEncoder) + '\n')
         
         print(f"\nSuccessfully converted {len(questions)} questions!")
         print(f"Output saved to: {output_file}")
         print(f"Topic set to: {topic}")
+        print(f"Topic_id ObjectId: {topic_object_id}")
         print("\nDifficulty levels mapping:")
         print("1,2 -> Easy")
         print("3   -> Medium")
@@ -134,7 +147,7 @@ def convert_excel_to_mongo_json(excel_file):
         
         if questions:
             print("\nSample of first converted question:")
-            print(json.dumps(questions[0], indent=2))
+            print(json.dumps(questions[0], indent=2, cls=MongoJSONEncoder))
             
         return questions
         
@@ -145,5 +158,5 @@ def convert_excel_to_mongo_json(excel_file):
         raise e
 
 if __name__ == "__main__":
-    excel_file = "F:/MathWebApp/Documents/QuestionBank/7/Decimals.xlsx"
+    excel_file = "F:/MathWebApp/Documents/QuestionBank/10/Polynomials.xlsx"
     convert_excel_to_mongo_json(excel_file)
