@@ -87,8 +87,8 @@ def convert_excel_to_mongo_json(excel_file):
         # Get the filename without extension for both output and topic
         base_filename = os.path.splitext(os.path.basename(excel_file))[0]
         output_file = f"{base_filename}.json"
-        topic = base_filename.split('_')[0] if '_' in base_filename else base_filename
-        
+        # topic = base_filename.split('_')[0] if '_' in base_filename else base_filename
+        topic = base_filename
         # Generate a unique ObjectId for this topic - DO NOT convert to string
         topic_object_id = ObjectId()
         print(f"Generated ObjectId for topic '{topic}': {topic_object_id}")
@@ -158,5 +158,5 @@ def convert_excel_to_mongo_json(excel_file):
         raise e
 
 if __name__ == "__main__":
-    excel_file = "F:/MathWebApp/Documents/QuestionBank/10/Polynomials.xlsx"
+    excel_file = "F:/MathWebApp/Documents/QuestionBank/7/7_AlgebraicExpressions.xlsx"
     convert_excel_to_mongo_json(excel_file)

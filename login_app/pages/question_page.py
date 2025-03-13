@@ -188,7 +188,8 @@ if current_question:
             options=display_values,
             label_visibility="visible",
             key=question_key,
-            index=None
+            index=None,
+            disabled=st.session_state.submitted_answer  # Disable after submission to maintain selection
         )
 
         col1, col2, col3 = st.columns([1, 1, 1])

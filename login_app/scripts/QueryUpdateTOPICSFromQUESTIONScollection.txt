@@ -17,7 +17,18 @@ let existingTopicNames = db.topics.distinct("name");
 let newTopics = topicsToInsert.filter(topic => !existingTopicNames.includes(topic._id));
 
 // Check if topic_id is already an ObjectId, if not convert it
+// Also sort the sub_topics array based on section letter
 newTopics = newTopics.map(topic => {
+  // Sort the sub_topics array by section letter
+  let sortedSubTopics = topic.sub_topics.sort((a, b) => {
+    // Extract section letter from strings like "Section A - ..."
+    let sectionA = a.match(/Section ([A-Z])/i)?.[1] || "";
+    let sectionB = b.match(/Section ([A-Z])/i)?.[1] || "";
+    
+    // Compare the section letters
+    return sectionA.localeCompare(sectionB);
+  });
+  
   // Create the document with the right structure
   return {
     // If topic_id exists and is valid, use it; otherwise generate a new ObjectId
@@ -25,7 +36,7 @@ newTopics = newTopics.map(topic => {
          topic.topic_id : 
          new ObjectId(),
     name: topic._id,      // Use the topic name as name
-    sub_topics: topic.sub_topics,
+    sub_topics: sortedSubTopics,
     created_at: new Date()
   };
 });
