@@ -158,5 +158,5 @@ def convert_excel_to_mongo_json(excel_file):
         raise e
 
 if __name__ == "__main__":
-    excel_file = "F:/MathWebApp/Documents/QuestionBank/10/10_Polynomials.xlsx"
+    excel_file = "F:/MathWebApp/Documents/QuestionBank/8/8_CubeAndCubeRoots.xlsx"
     convert_excel_to_mongo_json(excel_file)
