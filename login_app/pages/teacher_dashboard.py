@@ -587,7 +587,7 @@ with tab5:
                         st.progress(min(total_practice_days/7, 1.0))  # Assumes 7 days as target
 
                 with report_tabs[1]:
-                    st.markdown("### Detailed Performance by Topic")
+                    st.markdown("### Detailed Performance by {student_name}")
                     
                     # Convert table data to DataFrame with enhanced formatting
                     df = pd.DataFrame(table_data, columns=[

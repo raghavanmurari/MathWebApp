@@ -1,154 +1,120 @@
 [{
   "_id": {
-    "$oid": "67a1f999cebf59a3881a0a61"
+    "$oid": "67d2f0491f851844193fc143"
   },
-  "created_at": {
-    "$date": "2025-03-11T07:07:08.390Z"
-  },
-  "name": "Fractions",
+  "name": "7_BODMAS",
   "sub_topics": [
-    "Section A - Identifying and Comparing Fractions",
-    "Section D - Multiplication and Division of Fractions",
-    "Section B - Simplifying Fractions",
-    "Section E - Applying Fractions in Real-life Problems"
-  ]
-},
-{
-  "_id": {
-    "$oid": "67a220c4732accb0d9b5930a"
-  },
-  "name": "AlgebraicExpressions",
-  "sub_topics": [
-    "Section D - Finding the Value of an Expression",
-    "Section C - Monomials, Binomials, Trinomials, and Polynomials",
-    "Section B - Like and Unlike Terms",
-    "Section A - Terms of an Expression"
-  ],
-  "created_at": {
-    "$date": "2025-03-11T07:07:08.390Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67a226a0735946c1cba8e93d"
-  },
-  "name": "Decimals",
-  "sub_topics": [
-    "Decimal Addition and Subtraction",
-    "Decimal Division",
-    "Applying Decimals in Real-life Problems",
-    "Decimal Multiplication",
-    "Place Value and Reading Decimals"
-  ],
-  "created_at": {
-    "$date": "2025-03-11T07:07:08.390Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe09fd"
-  },
-  "name": "ExponentsAndPowers",
-  "sub_topics": [
-    "Section B - Laws of Exponents - Zero exponent",
-    "Section A - Laws of Exponents - Power Rule",
-    "Section D - Laws of Exponents - Negative exponent rule",
-    "Section F - Laws of Exponents - Quotient law of exponents rule",
-    "Section G - Laws of Exponents - Fractional exponent rule",
-    "Section E - Laws of Exponents - Product rule",
-    "Section C - Laws of Exponents - Quotient to a power rule"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe09fe"
-  },
-  "name": "RationalNumbers",
-  "sub_topics": [
-    "Section G - OPERATIONS ON RATIONAL NUMBERS",
-    "Section D - RATIONAL NUMBERS IN STANDARD FORM",
-    "Section A - Equivalent rational numbers",
-    "Section E - COMPARISON OF RATIONAL NUMBERS",
-    "Section B - POSITIVE AND NEGATIVE RATIONAL NUMBERS",
-    "Section F - RATIONAL NUMBERS BETWEEN TWO RATIONAL NUMBERS",
-    "Section C - RATIONAL NUMBERS ON A NUMBER LINE"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe09ff"
-  },
-  "name": "TrianglesAndItsProperties",
-  "sub_topics": [
-    "Section A - MEDIANS OF A TRIANGLE",
-    "Section E - TWO SPECIAL TRIANGLES : EQUILATERAL AND ISOSCELES",
-    "Section F - SUM OF THE LENGTHS OF TWO SIDES OF A TRIANGLE",
-    "Section G - RIGHT-ANGLED TRIANGLES AND PYTHAGORAS PROPERTY",
-    "Section C - EXTERIOR ANGLE OF A TRIANGLE AND ITS PROPERTY",
-    "Section B - ALTITUDES OF A TRIANGLE",
-    "Section D - ANGLE SUM PROPERTY OF A TRIANGLE"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a00"
-  },
-  "name": "BODMAS",
-  "sub_topics": [
+    "Section A - Brackets",
     "Section B - Orders (Powers and Roots)",
     "Section C - Division and Multiplication",
-    "Section A - Brackets",
     "Section D - Addition and Subtraction",
     "Section E - Combining Everything"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T14:54:44.711Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a01"
+    "$oid": "67d2f0641c507dc2826b2866"
   },
-  "name": "Integers",
+  "name": "7_Fractions",
   "sub_topics": [
-    "Section D - Applications of Integers",
-    "Section C - Multiplication and Division of Integers",
+    "Section A - Identifying and Comparing Fractions",
+    "Section B - Simplifying Fractions",
+    "Section C - Addition and Subtraction of Fractions",
+    "Section D - Multiplication and Division of Fractions",
+    "Section E - Applying Fractions in Real-life Problems"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T14:54:44.711Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f05dabba1963206a2ad6"
+  },
+  "name": "7_Decimals",
+  "sub_topics": [
+    "Decimal Multiplication - Decimal Multiplication",
+    "Decimal Division - Decimal Division",
+    "Decimal Addition and Subtraction - Decimal Addition and Subtraction",
+    "Place Value and Reading Decimals - Place Value and Reading Decimals",
+    "Applying Decimals in Real-life Problems - Applying Decimals in Real-life Problems"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T14:54:44.711Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f0806c0b1dfa4c6ec6fa"
+  },
+  "name": "7_RationalNumbers",
+  "sub_topics": [
+    "Section A - Equivalent rational numbers",
+    "Section B - POSITIVE AND NEGATIVE RATIONAL NUMBERS",
+    "Section C - RATIONAL NUMBERS ON A NUMBER LINE",
+    "Section D - RATIONAL NUMBERS IN STANDARD FORM",
+    "Section E - COMPARISON OF RATIONAL NUMBERS",
+    "Section F - RATIONAL NUMBERS BETWEEN TWO RATIONAL NUMBERS",
+    "Section G - OPERATIONS ON RATIONAL NUMBERS"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T14:54:44.711Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f0b5db43d348ab5bb160"
+  },
+  "name": "7_AlgebraicExpressions",
+  "sub_topics": [
+    "Section A - Terms of an Expression",
+    "Section B - Like and Unlike Terms",
+    "Section C - Monomials, Binomials, Trinomials, and Polynomials",
+    "Section D - Finding the Value of an Expression"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T14:54:44.711Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f06c700b8254685f1e4f"
+  },
+  "name": "7_Integers",
+  "sub_topics": [
+    "Section A - Introduction to Integers",
     "Section B - Addition and Subtraction of Integers",
-    "Section E - Least Common Multiple-LCM",
-    "Section A - Introduction to Integers"
+    "Section C - Multiplication and Division of Integers",
+    "Section D - Applications of Integers",
+    "Section E - Least Common Multiple-LCM"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T14:54:44.711Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a02"
+    "$oid": "67d2f079bd08ad36d9ba7e5d"
   },
-  "name": "Mensuration",
+  "name": "7_PerimeterAndArea",
   "sub_topics": [
-    "Surface Area of Cube, Cuboid and Cylinder - Surface Area of Cube, Cuboid and Cylinder",
-    "Volume of Cube, Cuboid, and Cylinder - Volume of Cube, Cuboid, and Cylinder",
-    "Area of Polygon - Area of Polygon"
+    "Section A - AREA OF A PARALLELOGRAM",
+    "Section B - AREA OF A TRIANGLE",
+    "Section C - Circumference of a Circle",
+    "Section D - Area of Circle"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T14:54:44.711Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a03"
+    "$oid": "67d2f089d126d8701d597d04"
   },
-  "name": "RatiosAndProportions",
+  "name": "7_RatiosAndProportions",
   "sub_topics": [
     "Section A - Understanding Ratios",
     "Section B - Ratio Applications",
@@ -157,123 +123,122 @@
     "Section E - Advanced Applications of Ratio and Proportions"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T14:54:44.711Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a04"
+    "$oid": "67d2f051c96e7c090c3c6bda"
   },
-  "name": "SimpleEquationsInOneVariable",
+  "name": "7_ComparingQuantities",
   "sub_topics": [
-    "Section A - Simple Equations -1",
-    "Section C - Simple Equations -3",
-    "Section B - Simple Equations -2"
+    "Section A",
+    "Section B",
+    "Section C",
+    "Section D",
+    "Section E"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T14:54:44.711Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a05"
+    "$oid": "67d2f2d4f6af82dc3b3addb5"
   },
-  "name": "PerimeterAndArea",
+  "name": "8_LinearEquationInOneVariable",
   "sub_topics": [
-    "Section C - Circumference of a Circle",
-    "Section A - AREA OF A PARALLELOGRAM",
-    "Section D - Area of Circle",
-    "Section B - AREA OF A TRIANGLE"
+    "Section A - Solving Equations having the Variable on both Sides"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T15:02:05.434Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a06"
+    "$oid": "67d2f2ccae159dd03147b6f5"
   },
-  "name": "Factorization",
+  "name": "8_Factorization",
   "sub_topics": [
+    "Section A - Factors of algebraic expressions",
     "Section B - Factorisation using algebraic identities",
     "Section C - Method of Common Factors",
-    "Section F - Division of a Monomial by Another Monomial",
-    "Section G - Division of a Polynomial by a Monomial",
-    "Section A - Factors of algebraic expressions",
+    "Section D - Factorisation by Regrouping Terms",
     "Section E - Factors of the Form (x + a)(x + b)",
-    "Section D - Factorisation by Regrouping Terms"
+    "Section F - Division of a Monomial by Another Monomial",
+    "Section G - Division of a Polynomial by a Monomial"
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T15:02:05.434Z"
   }
 },
 {
   "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a07"
+    "$oid": "67d2f2da094f095dcac8ab9d"
   },
-  "name": "CubeAndCubeRoots",
+  "name": "8_Mensuration",
+  "sub_topics": [
+    "Volume of Cube, Cuboid, and Cylinder - Volume of Cube, Cuboid, and Cylinder",
+    "Area of Polygon - Area of Polygon",
+    "Surface Area of Cube, Cuboid and Cylinder - Surface Area of Cube, Cuboid and Cylinder"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T15:02:05.434Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f2e1e4b1578cf31889e9"
+  },
+  "name": "8_SquareAndSquareRoots",
+  "sub_topics": [
+    "Section A - Properties of Square Numbers",
+    "Section B - Finding the Square of a Number"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T15:02:05.434Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f2b5cad8818f7ffca945"
+  },
+  "name": "8_AlgebraicExpressions",
+  "sub_topics": [
+    "Section A - Addition and Subtraction of Algebraic Expressions",
+    "Section B - Multiplication of Algebraic Expressions"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T15:02:05.434Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f2c603a3822dfc2c17c0"
+  },
+  "name": "8_ExponentsAndPowers",
+  "sub_topics": [
+    "Section A - Laws of Exponents - Power Rule",
+    "Section B - Laws of Exponents - Zero exponent",
+    "Section C - Laws of Exponents - Quotient to a power rule",
+    "Section D - Laws of Exponents - Negative exponent rule",
+    "Section E - Laws of Exponents - Product rule",
+    "Section F - Laws of Exponents - Quotient law of exponents rule",
+    "Section G - Laws of Exponents - Fractional exponent rule"
+  ],
+  "created_at": {
+    "$date": "2025-03-13T15:02:05.434Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "67d2f3064b7718edfb8e180c"
+  },
+  "name": "8_CubeAndCubeRoots",
   "sub_topics": [
     "Section A - "
   ],
   "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a08"
-  },
-  "name": "Polynomials",
-  "sub_topics": [
-    "Section B - Zeros of a Polynomial",
-    "Section C - Relationship between Zeros and Coefficients",
-    "Section D - Division Algorithm for Polynomials",
-    "Section A - Introduction to Polynomials"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a09"
-  },
-  "name": "ComparingQuantities",
-  "sub_topics": [
-    "Section E",
-    "Section A",
-    "Section C",
-    "Section D",
-    "Section B"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a0a"
-  },
-  "name": "DirectAndInverseProportions",
-  "sub_topics": [
-    "Section C - Cross-Topic Integration Prompts",
-    "Section A - Direct Proportion",
-    "Section B - Inverse Proportion"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
-  }
-},
-{
-  "_id": {
-    "$oid": "67d0f3e770f5efb14bfe0a0b"
-  },
-  "name": "SquareAndSquareRoots",
-  "sub_topics": [
-    "Section B - Finding the Square of a Number",
-    "Section A - Properties of Square Numbers"
-  ],
-  "created_at": {
-    "$date": "2025-03-12T02:39:35.037Z"
+    "$date": "2025-03-13T15:02:05.434Z"
   }
 }]
