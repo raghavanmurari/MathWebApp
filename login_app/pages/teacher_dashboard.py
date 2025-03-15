@@ -96,7 +96,24 @@ def get_accuracy_color(accuracy):
         return "🟡 " + str(round(accuracy, 2)) + "%"
     else:
         return "🔴 " + str(round(accuracy, 2)) + "%"
+
+def get_days_practiced_color(days_str):
+    """Returns color-coded days practiced indicator based on percentage."""
+    # Parse the "X out of Y days" format
+    parts = days_str.split("out of")
+    practiced = int(parts[0].strip())
+    total = int(parts[1].strip().split(" days")[0])
     
+    # Calculate percentage
+    percentage = (practiced / total) * 100 if total > 0 else 0
+    
+    # Apply color coding based on percentage
+    if percentage < 40:
+        return "🔴 " + days_str
+    elif percentage <= 70:
+        return "🟡 " + days_str
+    else:
+        return "🟢 " + days_str
 
 with tab1:
     st.header("Welcome to the Teacher Dashboard")
@@ -432,22 +449,6 @@ with tab5:
                             total_correct += 1
                         total_questions += 1
 
-                    # Add debug text to verify the calculation
-                    # st.text(f"Debug: {total_correct} correct out of {total_questions} questions")
-                    # Calculate overall accuracies
-                    # def extract_accuracy(accuracy_str):
-                    #     # Remove emoji and % symbol, convert to float
-                    #     return float(accuracy_str.split()[1].replace('%', ''))
-
-                    # avg_accuracies = {
-                    #     "Easy": sum(extract_accuracy(row[5]) for row in table_data) / len(table_data),
-                    #     "Medium": sum(extract_accuracy(row[6]) for row in table_data) / len(table_data),
-                    #     "Hard": sum(extract_accuracy(row[7]) for row in table_data) / len(table_data)
-                    # }
-
-                    # # Determine focus area and strength
-                    # focus_needed_level = min(avg_accuracies, key=avg_accuracies.get)
-                    # strength_level = max(avg_accuracies, key=avg_accuracies.get)
 
             
             # Add this CSS at the beginning of your script where other styles are defined
@@ -487,195 +488,65 @@ with tab5:
             """, unsafe_allow_html=True)
 
             # Replace the existing report section with this:
-            if st.button("Generate Report", key=f"progress_report_{student_id}"):
-                # Create tabs for different sections of the report
-                report_tabs = st.tabs(["Overview 📊", "Details 📝", "Recommendations 💡"])
-                
+            has_assignments = len(active_assignments) > 0 and len(topic_subtopic_options) > 1
+            if st.button("Generate Report", key=f"progress_report_{student_id}", disabled=not has_assignments):
+                report_tabs = st.tabs(["Details 📝"])
+
                 with report_tabs[0]:
-                    # Header with student info
-                    st.markdown(f"### Performance Report for {student_name}")
-                    
-                    # Key metrics in a 2x2 grid with custom styling
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown("""
-                            <div class="metric-container">
-                                <div class="stat-header">Practice Engagement</div>
-                                <div class="stat-value">📅 {total_practice_days} out of 7 Days</div>
-                            </div>
-                        """.format(total_practice_days=total_practice_days), unsafe_allow_html=True)
-                        
-                        st.markdown("""
-                            <div class="metric-container" style="margin-top: 1rem;">
-                                <div class="stat-header">Focus Area Needed</div>
-                                <div class="stat-value">🎯 {level} ({accuracy:.1f}%)</div>
-                            </div>
-                        """.format(
-                            level=focus_needed_level,
-                            accuracy=avg_accuracies[focus_needed_level]
-                        ), unsafe_allow_html=True)
-
-                    with col2:
-                        st.markdown("""
-                            <div class="metric-container">
-                                <div class="stat-header">Strongest Area</div>
-                                <div class="stat-value">🏆 {level} ({accuracy:.1f}%)</div>
-                            </div>
-                        """.format(
-                            level=strength_level,
-                            accuracy=avg_accuracies[strength_level]
-                        ), unsafe_allow_html=True)
-                        
-                        # overall_accuracy = sum(avg_accuracies.values()) / len(avg_accuracies)
-                        overall_accuracy = (total_correct / total_questions * 100) if total_questions > 0 else 0
-                        # st.text(f"Debug: {total_correct} correct out of {total_questions} questions")
-                        st.markdown("""
-                            <div class="metric-container" style="margin-top: 1rem;">
-                                <div class="stat-header">Overall Performance</div>
-                                <div class="stat-value">📈 {accuracy:.1f}%</div>
-                            </div>
-                        """.format(accuracy=overall_accuracy), unsafe_allow_html=True)
-
-                    # Add Topics Overview with improved styling
-                    st.markdown("### 📚 Current Topics")
-                    
-                    # Group topics to avoid repetition
-                    unique_topics = {}
-                    for topic, subtopic, _, _, _, _, _, _ in table_data:
-                        if topic not in unique_topics:
-                            unique_topics[topic] = []
-                        unique_topics[topic].append(subtopic)
-                    
-                    for topic, subtopics in unique_topics.items():
-                        st.markdown(f"""
-                            <div style="
-                                background-color: white;
-                                border-radius: 8px;
-                                padding: 15px 20px;
-                                margin: 10px 0;
-                                border-left: 4px solid #3b82f6;
-                                box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                                <div style="
-                                    color: #1f2937;
-                                    font-size: 16px;
-                                    font-weight: 600;
-                                    margin-bottom: 8px;">
-                                    {topic}
-                                </div>
-                                <div style="
-                                    color: #6b7280;
-                                    font-size: 14px;
-                                    padding-left: 8px;
-                                    border-left: 2px solid #e5e7eb;
-                                    margin-left: 4px;">
-                                    {subtopics[0]}
-                                </div>
-                            </div>
-                        """, unsafe_allow_html=True)
-
-                    # Practice Consistency Indicator
-                    st.markdown("### Practice Consistency")
-                    consistency_col1, consistency_col2 = st.columns([1, 2])
-                    with consistency_col1:
-                        if total_practice_days >= 5:
-                            st.success("🌟 Excellent")
-                        elif total_practice_days >= 3:
-                            st.info("👍 Good")
-                        else:
-                            st.warning("⚠️ Needs Improvement")
-                    with consistency_col2:
-                        st.progress(min(total_practice_days/7, 1.0))  # Assumes 7 days as target
-
-                with report_tabs[1]:
-                    st.markdown("### Detailed Performance by {student_name}")
-                    
-                    # Convert table data to DataFrame with enhanced formatting
-                    df = pd.DataFrame(table_data, columns=[
-                        "Topic",
-                        "Sub-Topic",
-                        "Created Date",
-                        "Deadline",
-                        "Days Practiced",
-                        "Easy Accuracy",
-                        "Medium Accuracy",
-                        "Hard Accuracy"
-                    ])
-                    
-                    # Enhanced styling for the dataframe
-                    st.dataframe(
-                        df,
-                        hide_index=True,
-                        column_config={
-                            "Topic": st.column_config.TextColumn(
-                                "Topic",
-                                help="Main subject area",
-                                width="medium"
-                            ),
-                            "Sub-Topic": st.column_config.TextColumn(
-                                "Sub-Topic",
-                                help="Specific area of study",
-                                width="medium"
-                            ),
-                            "Days Practiced": st.column_config.NumberColumn(
-                                "Practice Days",
-                                help="Number of days spent practicing",
-                                format="%d days"
-                            ),
-                            "Easy Accuracy": st.column_config.TextColumn(
-                                "Easy Level",
-                                help="Performance in easy questions"
-                            ),
-                            "Medium Accuracy": st.column_config.TextColumn(
-                                "Medium Level",
-                                help="Performance in medium questions"
-                            ),
-                            "Hard Accuracy": st.column_config.TextColumn(
-                                "Hard Level",
-                                help="Performance in hard questions"
-                            )
-                        }
-                    )
-
-                with report_tabs[2]:
-                    st.markdown("### Personalized Recommendations")
-                    
-                    # Create recommendations based on performance
-                    if avg_accuracies[focus_needed_level] < 40:
-                        st.error("#### Priority Areas for Improvement")
-                        st.markdown("""
-                            - 📚 **Additional practice needed** in {} difficulty questions
-                            - 👨‍🏫 Consider scheduling **one-on-one sessions** with the teacher
-                            - 🔄 Review fundamental concepts in challenging topics
-                        """.format(focus_needed_level))
-                        
-                    elif avg_accuracies[focus_needed_level] < 70:
-                        st.info("#### Suggested Focus Areas")
-                        st.markdown("""
-                            - 📝 Continue practicing {} level questions
-                            - 🎯 Focus on topics with lower accuracy scores
-                            - ✍️ Review incorrect answers to understand mistakes
-                        """.format(focus_needed_level))
-                        
+                    st.markdown(f"### Detailed Performance by {student_name}")
+                    # Update table_data to modify the "Days Practiced" column.
+                    # For each row, we calculate the total days for that subtopic and then set the value as "X out of Y days"
+                    if not table_data:
+                        st.info("No assignments available for this student.")
                     else:
-                        st.success("#### Keep Up the Great Work!")
-                        st.markdown("""
-                            - 🚀 Challenge yourself with harder questions
-                            - 👥 Consider helping peers who might be struggling
-                            - 📚 Explore more advanced topics
-                        """)
+                        new_table_data = []
+                        for row in table_data:
+                            topic, sub_topic, created_str, deadline_str, days_practiced, easy_acc, medium_acc, hard_acc = row
 
-                    # Add specific topic recommendations
-                    st.markdown("### Topic-Specific Focus Areas")
-                    for topic, subtopic, _, _, _, easy, medium, hard in table_data:
-                        if any(acc.startswith('🔴') for acc in [easy, medium, hard]):
-                            st.warning(f"**{topic} - {subtopic}**")
-                            st.markdown("- Requires additional attention, especially in:")
-                            if easy.startswith('🔴'):
-                                st.markdown("  - Fundamental concepts")
-                            if medium.startswith('🔴'):
-                                st.markdown("  - Application problems")
-                            if hard.startswith('🔴'):
-                                st.markdown("  - Advanced concepts")
+                            # Parse the created and deadline dates (assumed to be in "YYYY-MM-DD" format)
+                            try:
+                                created_date = datetime.strptime(created_str, "%Y-%m-%d")
+                                deadline_date = datetime.strptime(deadline_str, "%Y-%m-%d")
+                            except ValueError:
+                                # If parsing fails, default total days to 1
+                                days_total_subtopic = 1
+                            else:
+                                # Calculate total days (inclusive); if same-day, that counts as 1 day
+                                days_total_subtopic = (deadline_date - created_date).days + 1
+                                if days_total_subtopic < 1:
+                                    days_total_subtopic = 1
+
+                            # Format the days practiced string as "X out of Y days"
+                            new_days_practiced = f"{days_practiced} out of {days_total_subtopic} days"
+                            colored_days = get_days_practiced_color(new_days_practiced)
+                            new_table_data.append([
+                                topic,
+                                sub_topic,
+                                created_str,
+                                deadline_str,
+                                colored_days,  # Use this instead of new_days_practiced
+                                easy_acc,
+                                medium_acc,
+                                hard_acc
+                            ])
+
+                        # Convert the updated table data to a DataFrame
+                        df = pd.DataFrame(new_table_data, columns=[
+                            "Topic",
+                            "Sub-Topic",
+                            "Created Date",
+                            "Deadline",
+                            "Days Practiced",
+                            "Easy Accuracy",
+                            "Medium Accuracy",
+                            "Hard Accuracy"
+                        ])
+
+                        # Display the DataFrame
+                        st.dataframe(df, hide_index=True)
+
+
+
 
 
 with tab6:
