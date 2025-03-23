@@ -183,6 +183,11 @@ if current_question:
             display_values.append(display_text)
             option_mapping[display_text] = option
 
+        # After all options are processed, add "I DON'T KNOW" option
+        dont_know_text = "I DON'T KNOW"
+        display_values.append(dont_know_text)
+        option_mapping[dont_know_text] = {"text": dont_know_text, "is_correct": False}
+
         selected = st.radio(
             "",# "Choose your answer:",
             options=display_values,
