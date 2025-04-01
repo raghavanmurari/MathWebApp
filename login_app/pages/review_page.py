@@ -56,8 +56,10 @@ else:
             continue
 
         # Display the question description with LaTeX conversion
-        st.markdown(f"### Question {i}")
+        difficulty = question.get("difficulty", "Not specified")
+        st.markdown(f"### Question {i} &nbsp;&nbsp;&nbsp; (Difficulty: {difficulty})")
         st.markdown(convert_latex(question.get("description", "No description available.")))
+
 
         # Display the student's selected answer and correctness indicator with LaTeX conversion if needed
         selected_option = response.get("selected_option", {})
