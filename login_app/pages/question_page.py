@@ -188,6 +188,12 @@ if current_question:
         display_values.append(dont_know_text)
         option_mapping[dont_know_text] = {"text": dont_know_text, "is_correct": False}
 
+        # Add the ❌ to "I DON'T KNOW" option if it was selected
+        if st.session_state.submitted_answer and question_key in st.session_state and st.session_state[question_key] == dont_know_text:
+            # Find the index of "I DON'T KNOW" in display_values and add the ❌
+            idx = display_values.index(dont_know_text)
+            display_values[idx] = dont_know_text + " ❌"
+            
         selected = st.radio(
             "",# "Choose your answer:",
             options=display_values,

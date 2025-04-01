@@ -152,20 +152,24 @@ def show_create_assignment():
                 if duplicate_found:
                     st.warning("The following students already have this sub-topic assigned: " + ", ".join(duplicates))
                 else:
-                    # Create new assignment
-                    new_assignment = {
-                        "teacher_id": ObjectId(st.session_state["user_id"]),
-                        "students": [ObjectId(s_id) for s_id in selected_students],
-                        "topic_id": ObjectId(st.session_state['topic_id']),
-                        "sub_topics": st.session_state['sub_topics'],
-                        "deadline": deadline,
-                        "status": "active",
-                        "created_at": datetime.now()
-                    }
+                    # Create separate assignments for each sub-topic
+                    created_count = 0
+                    for sub_topic in st.session_state['sub_topics']:
+                        new_assignment = {
+                            "teacher_id": ObjectId(st.session_state["user_id"]),
+                            "students": [ObjectId(s_id) for s_id in selected_students],
+                            "topic_id": ObjectId(st.session_state['topic_id']),
+                            "sub_topics": [sub_topic],  # Just one sub-topic per assignment
+                            "deadline": deadline,
+                            "status": "active",
+                            "created_at": datetime.now()
+                        }
+                        
+                        # Insert assignment
+                        assignments_collection.insert_one(new_assignment)
+                        created_count += 1
                     
-                    # Insert assignment
-                    assignments_collection.insert_one(new_assignment)
-                    st.success("Assignment created successfully!")
+                    st.success(f"{created_count} assignment(s) created successfully!")
                     
                     # Clear create assignment state
                     for key in ['create_step', 'topic_id', 'sub_topics', 'show_create']:
