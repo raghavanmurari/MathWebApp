@@ -261,8 +261,8 @@ with tab4:
 
 
 with tab5:
-    # st.header("📊 Student Progress")
     st.header("")
+    
     # Fetch required collections
     db = get_db()
     students_collection = db["students"]
@@ -325,395 +325,393 @@ with tab5:
                 st.warning("No topics found for this student.")
                 selected_topic_subtopics = ["All Topics"]
 
-        if student_id:
-            question_counts = {}
-            student_name = students_dict[student_id]
-            # st.subheader(f"Progress for {student_name}")
+        # CSS styles
+        st.markdown("""
+            <style>
+                .metric-container {
+                    background-color: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                }
+                .stat-header {
+                    color: #6b7280;
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+                .stat-value {
+                    color: #111827;
+                    font-size: 24px;
+                    font-weight: 700;
+                    margin-top: 4px;
+                }
+                .highlight {
+                    background-color: #f3f4f6;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-weight: 500;
+                }
+                .stDataFrame {
+                    padding: 1rem;
+                    border-radius: 8px;
+                    border: 1px solid #e5e7eb;
+                }
+            </style>
+        """, unsafe_allow_html=True)
 
-            if not active_assignments:
-                st.warning("No active assignments for this student.")
-            else:
-                table_data = []
-                total_practice_days = 0
-                
-                for assignment in active_assignments:
-                    topic_id = assignment.get("topic_id")
-                    topic_name = "Unknown Topic"
-                    if topic_id:
-                        topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
-                        if topic_doc:
-                            topic_name = topic_doc.get("name")
+        # Only show the Generate Report button in tab5, and only if there are assignments
+        has_assignments = student_id and len(active_assignments) > 0 and len(topic_subtopic_options) > 1
+        if st.button("Generate Report", key=f"progress_report_{student_id}", disabled=not has_assignments,type="primary"):
+            # All the report generation code goes inside this conditional block
+            if student_id:
+                question_counts = {}
+                student_name = students_dict[student_id]
 
-                    responses = list(responses_collection.find({
-                        "student_id": ObjectId(student_id),
-                        "assignment_id": assignment["_id"]
-                    }))
-
-                    questions_collection = db["questions"]
-                    questions = {
-                        str(q["_id"]): q for q in questions_collection.find({
-                            "_id": {"$in": [r["question_id"] for r in responses]}
-                        })
-                    }
-
-                    for sub_topic in assignment.get("sub_topics", []):
-                        current_combo = f"{topic_name} - {sub_topic}"
-                        if "All Topics" not in selected_topic_subtopics and current_combo not in selected_topic_subtopics:
-                            continue
-
-                        subtopic_responses = [r for r in responses 
-                            if str(r["question_id"]) in questions 
-                            and questions[str(r["question_id"])].get("sub_topic") == sub_topic]
-
-                        easy_accuracy = 0
-                        medium_accuracy = 0
-                        hard_accuracy = 0
-                    # Create a unique key for this topic and subtopic combination
-                        topic_subtopic_key = f"{topic_name}_{sub_topic}"
-                        
-                        # Initialize counts for this topic/subtopic
-                        if topic_subtopic_key not in question_counts:
-                            question_counts[topic_subtopic_key] = {
-                                "easy_attempted": 0,
-                                "easy_correct": 0,
-                                "medium_attempted": 0,
-                                "medium_correct": 0,
-                                "hard_attempted": 0,
-                                "hard_correct": 0
-                            }
-                        for difficulty in ["Easy", "Medium", "Hard"]:
-                            difficulty_responses = [r for r in subtopic_responses 
-                                if questions[str(r["question_id"])].get("difficulty") == difficulty]
-                            correct = sum(1 for r in difficulty_responses if r.get("is_correct"))
-                            total = len(difficulty_responses)
-                            accuracy = (correct / total * 100) if total > 0 else 0
-                            
-                            # Store accuracy and counts without modifying table_data structure
-                            if difficulty == "Easy":
-                                easy_accuracy = accuracy
-                                question_counts[topic_subtopic_key]["easy_attempted"] = total
-                                question_counts[topic_subtopic_key]["easy_correct"] = correct
-                            elif difficulty == "Medium":
-                                medium_accuracy = accuracy
-                                question_counts[topic_subtopic_key]["medium_attempted"] = total
-                                question_counts[topic_subtopic_key]["medium_correct"] = correct
-                            else:
-                                hard_accuracy = accuracy
-                                question_counts[topic_subtopic_key]["hard_attempted"] = total
-                                question_counts[topic_subtopic_key]["hard_correct"] = correct
-
-                        practice_dates = {r.get("timestamp").date() for r in subtopic_responses if r.get("timestamp")}
-                        num_practice_days = len(practice_dates)
-                        total_practice_days += num_practice_days
-
-                        created_str = assignment.get("created_at").strftime("%Y-%m-%d") if assignment.get("created_at") else "No date"
-                        deadline_str = assignment.get("deadline").strftime("%Y-%m-%d") if assignment.get("deadline") else "No deadline"
-
-                        table_data.append([
-                            topic_name,
-                            sub_topic,
-                            created_str,
-                            deadline_str,
-                            num_practice_days,
-                            get_accuracy_color(easy_accuracy),
-                            get_accuracy_color(medium_accuracy),
-                            get_accuracy_color(hard_accuracy)
-                        ])
-
-                if table_data:
-                    def extract_accuracy(accuracy_str):
-                        # Remove emoji and % symbol, convert to float
-                        return float(accuracy_str.split()[1].replace('%', ''))
-
-                    avg_accuracies = {
-                        "Easy": sum(extract_accuracy(row[5]) for row in table_data) / len(table_data),
-                        "Medium": sum(extract_accuracy(row[6]) for row in table_data) / len(table_data),
-                        "Hard": sum(extract_accuracy(row[7]) for row in table_data) / len(table_data)
-                    }
-
-                    # Determine focus area and strength
-                    focus_needed_level = min(avg_accuracies, key=avg_accuracies.get)
-                    strength_level = max(avg_accuracies, key=avg_accuracies.get)
-
-                    # Get the current assignment IDs that the user has selected through the UI
-                    selected_assignment_ids = []
-                    if "All Topics" in selected_topic_subtopics:
-                        # If "All Topics" is selected, include all active assignments
-                        selected_assignment_ids = [assignment["_id"] for assignment in active_assignments]
-                    else:
-                        # Otherwise, only include assignments for the selected topics/subtopics
-                        for assignment in active_assignments:
-                            topic_id = assignment.get("topic_id")
-                            if topic_id:
-                                topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
-                                if topic_doc:
-                                    topic_name = topic_doc.get("name")
-                                    for subtopic in assignment.get("sub_topics", []):
-                                        display_string = f"{topic_name} - {subtopic}"
-                                        if display_string in selected_topic_subtopics:
-                                            selected_assignment_ids.append(assignment["_id"])
-                                            break
-
-                    # Calculate accuracy for just the selected assignments
-                    total_correct = 0
-                    total_questions = 0
-
-                    # Query responses only for the selected assignments
-                    filtered_responses = list(responses_collection.find({
-                        "student_id": ObjectId(student_id),
-                        "assignment_id": {"$in": selected_assignment_ids}
-                    }))
-
-                    for response in filtered_responses:
-                        if response.get("is_correct"):
-                            total_correct += 1
-                        total_questions += 1
-
-
-            
-            # Add this CSS at the beginning of your script where other styles are defined
-            st.markdown("""
-                <style>
-                    .metric-container {
-                        background-color: #f8f9fa;
-                        border-radius: 8px;
-                        padding: 20px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    }
-                    .stat-header {
-                        color: #6b7280;
-                        font-size: 14px;
-                        font-weight: 600;
-                        text-transform: uppercase;
-                        letter-spacing: 0.05em;
-                    }
-                    .stat-value {
-                        color: #111827;
-                        font-size: 24px;
-                        font-weight: 700;
-                        margin-top: 4px;
-                    }
-                    .highlight {
-                        background-color: #f3f4f6;
-                        padding: 2px 6px;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    }
-                    .stDataFrame {
-                        padding: 1rem;
-                        border-radius: 8px;
-                        border: 1px solid #e5e7eb;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
-
-# Replace the existing report section with this updated version:
-has_assignments = len(active_assignments) > 0 and len(topic_subtopic_options) > 1
-if st.button("Generate Report", key=f"progress_report_{student_id}", disabled=not has_assignments):
-    # NEW CODE: Create a set to track all unique practice days across all topics
-    all_unique_practice_dates = set()
-    
-    # NEW CODE: Populate this set by collecting all practice dates from all responses
-    for assignment in active_assignments:
-        responses = list(responses_collection.find({
-            "student_id": ObjectId(student_id),
-            "assignment_id": assignment["_id"]
-        }))
-        practice_dates = {r.get("timestamp").date() for r in responses if r.get("timestamp")}
-        all_unique_practice_dates.update(practice_dates)
-    
-    # NEW CODE: Store the total unique practice days in session state
-    total_unique_days = len(all_unique_practice_dates)
-    st.session_state['total_unique_days_practiced'] = total_unique_days
-    
-    report_tabs = st.tabs(["Details 📝", "Parent Summary 📱"])
-
-    # Existing detailed report tab
-    with report_tabs[0]:
-        st.markdown(f"### Detailed Performance by {student_name}")
-        if not table_data:
-            st.info("No assignments available for this student.")
-        else:
-            new_table_data = []
-            for row in table_data:
-                topic, sub_topic, created_str, deadline_str, days_practiced, easy_acc, medium_acc, hard_acc = row
-                
-                # Add these lines to get question counts for this topic/subtopic
-                topic_subtopic_key = f"{topic}_{sub_topic}"
-                counts = question_counts.get(topic_subtopic_key, {
-                    "easy_attempted": 0, "easy_correct": 0,
-                    "medium_attempted": 0, "medium_correct": 0,
-                    "hard_attempted": 0, "hard_correct": 0
-                })
-
-                # Keep your existing code for date parsing
-                try:
-                    created_date = datetime.strptime(created_str, "%Y-%m-%d")
-                    deadline_date = datetime.strptime(deadline_str, "%Y-%m-%d")
-                except ValueError:
-                    days_total_subtopic = 1
+                if not active_assignments:
+                    st.warning("No active assignments for this student.")
                 else:
-                    days_total_subtopic = (deadline_date - created_date).days + 1
-                    if days_total_subtopic < 1:
-                        days_total_subtopic = 1
+                    table_data = []
+                    total_practice_days = 0
+                    
+                    for assignment in active_assignments:
+                        topic_id = assignment.get("topic_id")
+                        topic_name = "Unknown Topic"
+                        if topic_id:
+                            topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
+                            if topic_doc:
+                                topic_name = topic_doc.get("name")
 
-                # Format days practiced as before
-                new_days_practiced = f"{days_practiced} out of {days_total_subtopic} days"
-                colored_days = get_days_practiced_color(new_days_practiced)
-                
-                # Add these lines to format accuracy with question counts
-                easy_counts = f"{easy_acc} ({counts['easy_correct']}/{counts['easy_attempted']})"
-                medium_counts = f"{medium_acc} ({counts['medium_correct']}/{counts['medium_attempted']})"
-                hard_counts = f"{hard_acc} ({counts['hard_correct']}/{counts['hard_attempted']})"
-                
-                # Now modify the new_table_data append to use the count-enhanced accuracy
-                new_table_data.append([
-                    topic,
-                    sub_topic,
-                    created_str,
-                    deadline_str,
-                    colored_days,
-                    easy_counts,
-                    medium_counts,
-                    hard_counts
-                ])
+                        responses = list(responses_collection.find({
+                            "student_id": ObjectId(student_id),
+                            "assignment_id": assignment["_id"]
+                        }))
 
-            # Keep the DataFrame creation and display as is
-            df = pd.DataFrame(new_table_data, columns=[
-                "Topic",
-                "Sub-Topic",
-                "Created Date",
-                "Deadline",
-                "Days Practiced",
-                "Easy Accuracy",
-                "Medium Accuracy",
-                "Hard Accuracy"
-            ])
+                        questions_collection = db["questions"]
+                        questions = {
+                            str(q["_id"]): q for q in questions_collection.find({
+                                "_id": {"$in": [r["question_id"] for r in responses]}
+                            })
+                        }
 
-            st.dataframe(df, hide_index=True)
+                        for sub_topic in assignment.get("sub_topics", []):
+                            current_combo = f"{topic_name} - {sub_topic}"
+                            if "All Topics" not in selected_topic_subtopics and current_combo not in selected_topic_subtopics:
+                                continue
 
-    # New parent summary report tab
-    with report_tabs[1]:
-        st.markdown(f"### {student_name}'s Learning Progress")
-        
-        if not table_data:
-            st.info("No assignments available for this student.")
+                            subtopic_responses = [r for r in responses 
+                                if str(r["question_id"]) in questions 
+                                and questions[str(r["question_id"])].get("sub_topic") == sub_topic]
+
+                            easy_accuracy = 0
+                            medium_accuracy = 0
+                            hard_accuracy = 0
+                            
+                            # Create a unique key for this topic and subtopic combination
+                            topic_subtopic_key = f"{topic_name}_{sub_topic}"
+                            
+                            # Initialize counts for this topic/subtopic
+                            if topic_subtopic_key not in question_counts:
+                                question_counts[topic_subtopic_key] = {
+                                    "easy_attempted": 0,
+                                    "easy_correct": 0,
+                                    "medium_attempted": 0,
+                                    "medium_correct": 0,
+                                    "hard_attempted": 0,
+                                    "hard_correct": 0
+                                }
+                                
+                            for difficulty in ["Easy", "Medium", "Hard"]:
+                                difficulty_responses = [r for r in subtopic_responses 
+                                    if questions[str(r["question_id"])].get("difficulty") == difficulty]
+                                correct = sum(1 for r in difficulty_responses if r.get("is_correct"))
+                                total = len(difficulty_responses)
+                                accuracy = (correct / total * 100) if total > 0 else 0
+                                
+                                # Store accuracy and counts
+                                if difficulty == "Easy":
+                                    easy_accuracy = accuracy
+                                    question_counts[topic_subtopic_key]["easy_attempted"] = total
+                                    question_counts[topic_subtopic_key]["easy_correct"] = correct
+                                elif difficulty == "Medium":
+                                    medium_accuracy = accuracy
+                                    question_counts[topic_subtopic_key]["medium_attempted"] = total
+                                    question_counts[topic_subtopic_key]["medium_correct"] = correct
+                                else:
+                                    hard_accuracy = accuracy
+                                    question_counts[topic_subtopic_key]["hard_attempted"] = total
+                                    question_counts[topic_subtopic_key]["hard_correct"] = correct
+
+                            practice_dates = {r.get("timestamp").date() for r in subtopic_responses if r.get("timestamp")}
+                            num_practice_days = len(practice_dates)
+                            total_practice_days += num_practice_days
+
+                            created_str = assignment.get("created_at").strftime("%Y-%m-%d") if assignment.get("created_at") else "No date"
+                            deadline_str = assignment.get("deadline").strftime("%Y-%m-%d") if assignment.get("deadline") else "No deadline"
+
+                            table_data.append([
+                                topic_name,
+                                sub_topic,
+                                created_str,
+                                deadline_str,
+                                num_practice_days,
+                                get_accuracy_color(easy_accuracy),
+                                get_accuracy_color(medium_accuracy),
+                                get_accuracy_color(hard_accuracy)
+                            ])
+
+                    if table_data:
+                        def extract_accuracy(accuracy_str):
+                            # Remove emoji and % symbol, convert to float
+                            return float(accuracy_str.split()[1].replace('%', ''))
+
+                        avg_accuracies = {
+                            "Easy": sum(extract_accuracy(row[5]) for row in table_data) / len(table_data),
+                            "Medium": sum(extract_accuracy(row[6]) for row in table_data) / len(table_data),
+                            "Hard": sum(extract_accuracy(row[7]) for row in table_data) / len(table_data)
+                        }
+
+                        # Determine focus area and strength
+                        focus_needed_level = min(avg_accuracies, key=avg_accuracies.get)
+                        strength_level = max(avg_accuracies, key=avg_accuracies.get)
+
+                        # Get the current assignment IDs that the user has selected through the UI
+                        selected_assignment_ids = []
+                        if "All Topics" in selected_topic_subtopics:
+                            # If "All Topics" is selected, include all active assignments
+                            selected_assignment_ids = [assignment["_id"] for assignment in active_assignments]
+                        else:
+                            # Otherwise, only include assignments for the selected topics/subtopics
+                            for assignment in active_assignments:
+                                topic_id = assignment.get("topic_id")
+                                if topic_id:
+                                    topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
+                                    if topic_doc:
+                                        topic_name = topic_doc.get("name")
+                                        for subtopic in assignment.get("sub_topics", []):
+                                            display_string = f"{topic_name} - {subtopic}"
+                                            if display_string in selected_topic_subtopics:
+                                                selected_assignment_ids.append(assignment["_id"])
+                                                break
+
+                        # Calculate accuracy for just the selected assignments
+                        total_correct = 0
+                        total_questions = 0
+
+                        # Query responses only for the selected assignments
+                        filtered_responses = list(responses_collection.find({
+                            "student_id": ObjectId(student_id),
+                            "assignment_id": {"$in": selected_assignment_ids}
+                        }))
+
+                        for response in filtered_responses:
+                            if response.get("is_correct"):
+                                total_correct += 1
+                            total_questions += 1
+
+                    # NEW CODE: Create a set to track all unique practice days across all topics
+                    all_unique_practice_dates = set()
+                    
+                    # NEW CODE: Populate this set by collecting all practice dates from all responses
+                    for assignment in active_assignments:
+                        responses = list(responses_collection.find({
+                            "student_id": ObjectId(student_id),
+                            "assignment_id": assignment["_id"]
+                        }))
+                        practice_dates = {r.get("timestamp").date() for r in responses if r.get("timestamp")}
+                        all_unique_practice_dates.update(practice_dates)
+                    
+                    # NEW CODE: Store the total unique practice days in session state
+                    total_unique_days = len(all_unique_practice_dates)
+                    st.session_state['total_unique_days_practiced'] = total_unique_days
+                    
+                    report_tabs = st.tabs(["Details 📝", "Parent Summary 📱"])
+
+                    # Existing detailed report tab
+                    with report_tabs[0]:
+                        st.markdown(f"### Detailed Performance by {student_name}")
+                        if not table_data:
+                            st.info("No assignments available for this student.")
+                        else:
+                            new_table_data = []
+                            for row in table_data:
+                                topic, sub_topic, created_str, deadline_str, days_practiced, easy_acc, medium_acc, hard_acc = row
+                                
+                                # Add these lines to get question counts for this topic/subtopic
+                                topic_subtopic_key = f"{topic}_{sub_topic}"
+                                counts = question_counts.get(topic_subtopic_key, {
+                                    "easy_attempted": 0, "easy_correct": 0,
+                                    "medium_attempted": 0, "medium_correct": 0,
+                                    "hard_attempted": 0, "hard_correct": 0
+                                })
+
+                                # Keep your existing code for date parsing
+                                try:
+                                    created_date = datetime.strptime(created_str, "%Y-%m-%d")
+                                    deadline_date = datetime.strptime(deadline_str, "%Y-%m-%d")
+                                except ValueError:
+                                    days_total_subtopic = 1
+                                else:
+                                    days_total_subtopic = (deadline_date - created_date).days + 1
+                                    if days_total_subtopic < 1:
+                                        days_total_subtopic = 1
+
+                                # Format days practiced as before
+                                new_days_practiced = f"{days_practiced} out of {days_total_subtopic} days"
+                                colored_days = get_days_practiced_color(new_days_practiced)
+                                
+                                # Add these lines to format accuracy with question counts
+                                easy_counts = f"{easy_acc} ({counts['easy_correct']}/{counts['easy_attempted']})"
+                                medium_counts = f"{medium_acc} ({counts['medium_correct']}/{counts['medium_attempted']})"
+                                hard_counts = f"{hard_acc} ({counts['hard_correct']}/{counts['hard_attempted']})"
+                                
+                                # Now modify the new_table_data append to use the count-enhanced accuracy
+                                new_table_data.append([
+                                    topic,
+                                    sub_topic,
+                                    created_str,
+                                    deadline_str,
+                                    colored_days,
+                                    easy_counts,
+                                    medium_counts,
+                                    hard_counts
+                                ])
+
+                            # Keep the DataFrame creation and display as is
+                            df = pd.DataFrame(new_table_data, columns=[
+                                "Topic",
+                                "Sub-Topic",
+                                "Created Date",
+                                "Deadline",
+                                "Days Practiced",
+                                "Easy Accuracy",
+                                "Medium Accuracy",
+                                "Hard Accuracy"
+                            ])
+
+                            st.dataframe(df, hide_index=True)
+
+                    # Parent summary report tab
+                    with report_tabs[1]:
+                        st.markdown(f"### {student_name}'s Learning Progress")
+                        
+                        if not table_data:
+                            st.info("No assignments available for this student.")
+                        else:
+                            # Create parent summary data
+                            parent_summary_data = []
+                            
+                            # Get the questions collection to count questions
+                            questions_collection = db["questions"]
+                            
+                            for assignment in active_assignments:
+                                topic_id = assignment.get("topic_id")
+                                topic_name = "Unknown Topic"
+                                if topic_id:
+                                    topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
+                                    if topic_doc:
+                                        topic_name = topic_doc.get("name")
+                                
+                                for sub_topic in assignment.get("sub_topics", []):
+                                    current_combo = f"{topic_name} - {sub_topic}"
+                                    if "All Topics" not in selected_topic_subtopics and current_combo not in selected_topic_subtopics:
+                                        continue
+                                    
+                                    # Count total questions for this subtopic in the assignment
+                                    total_questions = questions_collection.count_documents({
+                                        "topic_id": topic_id,
+                                        "sub_topic": sub_topic
+                                    })
+                                    
+                                    # Get student responses for this assignment
+                                    responses = list(responses_collection.find({
+                                        "student_id": ObjectId(student_id),
+                                        "assignment_id": assignment["_id"]
+                                    }))
+                                    
+                                    # Filter responses for this subtopic
+                                    subtopic_responses = []
+                                    for response in responses:
+                                        question = questions_collection.find_one({"_id": response["question_id"]})
+                                        if question and question.get("sub_topic") == sub_topic:
+                                            subtopic_responses.append(response)
+                                    
+                                    # Count attempted and correct questions
+                                    attempted_questions = len(subtopic_responses)
+                                    correct_questions = sum(1 for r in subtopic_responses if r.get("is_correct"))
+                                    
+                                    # Calculate completion percentage
+                                    completion_percentage = (attempted_questions / total_questions * 100) if total_questions > 0 else 0
+                                    accuracy_percentage = (correct_questions / attempted_questions * 100) if attempted_questions > 0 else 0
+                                    
+                                    # Calculate days practiced
+                                    practice_dates = {r.get("timestamp").date() for r in subtopic_responses if r.get("timestamp")}
+                                    num_practice_days = len(practice_dates)
+                                    
+                                    # Calculate total days student was supposed to practice
+                                    created_date = assignment.get("created_at").date() if assignment.get("created_at") else datetime.now().date()
+                                    deadline_date = assignment.get("deadline").date() if assignment.get("deadline") else datetime.now().date()
+                                    total_practice_days = (deadline_date - created_date).days + 1  # +1 to make it inclusive
+                                    if total_practice_days < 1:
+                                        total_practice_days = 1
+                                    
+                                    # Store practice dates for later checking
+                                    if 'subtopic_practice_days' not in st.session_state:
+                                        st.session_state['subtopic_practice_days'] = {}
+                                    
+                                    subtopic_key = f"{topic_name}_{sub_topic}"
+                                    st.session_state['subtopic_practice_days'][subtopic_key] = practice_dates
+                                    
+                                    parent_summary_data.append({
+                                        "Topic": topic_name,
+                                        "Sub-Topic": sub_topic,
+                                        "Total Questions": total_questions,
+                                        "Attempted": attempted_questions,
+                                        "Correct": correct_questions,
+                                        "Days Practiced": num_practice_days,
+                                        "Total Days": total_practice_days,
+                                        "Completion": completion_percentage,
+                                        "Accuracy": accuracy_percentage
+                                    })
+                            
+                            # Display parent summary table
+                            if parent_summary_data:
+                                df_parent = pd.DataFrame(parent_summary_data)
+                                
+                                st.dataframe(
+                                    df_parent[["Topic", "Sub-Topic", "Total Questions", "Attempted", "Correct", "Days Practiced", "Total Days"]],
+                                    hide_index=True,
+                                    column_config={
+                                        "Topic": st.column_config.TextColumn("Topic"),
+                                        "Sub-Topic": st.column_config.TextColumn("Sub-Topic"),
+                                        "Total Questions": st.column_config.NumberColumn("Total Questions", format="%d"),
+                                        "Attempted": st.column_config.NumberColumn("Attempted", format="%d"),
+                                        "Correct": st.column_config.NumberColumn("Correct", format="%d"),
+                                        "Days Practiced": st.column_config.NumberColumn("Days Practiced", format="%d", help="Number of unique days the student worked on this topic"),
+                                        "Total Days": st.column_config.NumberColumn("Total Days", format="%d", help="Number of days student was supposed to practice (from created date to deadline)")
+                                    },
+                                    use_container_width=True
+                                )
+                                
+                                # Add a legend/explanation for metrics
+                                st.markdown("""
+                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; border-left: 3px solid #4CAF50;">
+                                        <h4 style="margin-top: 0;">Understanding the Metrics</h4>
+                                        <ul>
+                                            <li><strong>Total Questions</strong>: The total number of questions available for practice in this topic</li>
+                                            <li><strong>Attempted</strong>: How many questions the student has tried so far</li>
+                                            <li><strong>Correct</strong>: How many questions the student answered correctly</li>
+                                            <li><strong>Days Practiced</strong>: Number of unique days the student worked on this topic</li>
+                                            <li><strong>Total Days</strong>: Number of days student was supposed to practice (from created date to deadline)</li>
+                                        </ul>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                            else:
+                                st.info("No data available to generate parent summary.")
         else:
-            # ... Existing CSS styles ...
-            
-            # Create parent summary data
-            parent_summary_data = []
-            
-            # Get the questions collection to count questions
-            questions_collection = db["questions"]
-            
-            for assignment in active_assignments:
-                topic_id = assignment.get("topic_id")
-                topic_name = "Unknown Topic"
-                if topic_id:
-                    topic_doc = topics_collection.find_one({"_id": ObjectId(str(topic_id))})
-                    if topic_doc:
-                        topic_name = topic_doc.get("name")
-                
-                for sub_topic in assignment.get("sub_topics", []):
-                    current_combo = f"{topic_name} - {sub_topic}"
-                    if "All Topics" not in selected_topic_subtopics and current_combo not in selected_topic_subtopics:
-                        continue
-                    
-                    # Count total questions for this subtopic in the assignment
-                    total_questions = questions_collection.count_documents({
-                        "topic_id": topic_id,
-                        "sub_topic": sub_topic
-                    })
-                    
-                    # Get student responses for this assignment
-                    responses = list(responses_collection.find({
-                        "student_id": ObjectId(student_id),
-                        "assignment_id": assignment["_id"]
-                    }))
-                    
-                    # Filter responses for this subtopic
-                    subtopic_responses = []
-                    for response in responses:
-                        question = questions_collection.find_one({"_id": response["question_id"]})
-                        if question and question.get("sub_topic") == sub_topic:
-                            subtopic_responses.append(response)
-                    
-                    # Count attempted and correct questions
-                    attempted_questions = len(subtopic_responses)
-                    correct_questions = sum(1 for r in subtopic_responses if r.get("is_correct"))
-                    
-                    # Calculate completion percentage
-                    completion_percentage = (attempted_questions / total_questions * 100) if total_questions > 0 else 0
-                    accuracy_percentage = (correct_questions / attempted_questions * 100) if attempted_questions > 0 else 0
-                    
-                    # Calculate days practiced
-                    practice_dates = {r.get("timestamp").date() for r in subtopic_responses if r.get("timestamp")}
-                    num_practice_days = len(practice_dates)
-                    
-                    # Calculate total days student was supposed to practice
-                    created_date = assignment.get("created_at").date() if assignment.get("created_at") else datetime.now().date()
-                    deadline_date = assignment.get("deadline").date() if assignment.get("deadline") else datetime.now().date()
-                    total_practice_days = (deadline_date - created_date).days + 1  # +1 to make it inclusive
-                    if total_practice_days < 1:
-                        total_practice_days = 1
-                    
-                    # Store practice dates for later checking
-                    if 'subtopic_practice_days' not in st.session_state:
-                        st.session_state['subtopic_practice_days'] = {}
-                    
-                    subtopic_key = f"{topic_name}_{sub_topic}"
-                    st.session_state['subtopic_practice_days'][subtopic_key] = practice_dates
-                    
-                    parent_summary_data.append({
-                        "Topic": topic_name,
-                        "Sub-Topic": sub_topic,
-                        "Total Questions": total_questions,
-                        "Attempted": attempted_questions,
-                        "Correct": correct_questions,
-                        "Days Practiced": num_practice_days,
-                        "Total Days": total_practice_days,  # Add this line
-                        "Completion": completion_percentage,
-                        "Accuracy": accuracy_percentage
-                    })
-            
-            # Display parent summary cards
-            if parent_summary_data:
-                # Create and display the parent summary table
-                df_parent = pd.DataFrame(parent_summary_data)  # Create DataFrame from the data
-                
-                # Format the table columns
-                # st.markdown("### Topic-wise Summary")
-                st.dataframe(
-                    df_parent[["Topic", "Sub-Topic", "Total Questions", "Attempted", "Correct", "Days Practiced", "Total Days"]],  # Include "Total Days"
-                    hide_index=True,
-                    column_config={
-                        "Topic": st.column_config.TextColumn("Topic"),
-                        "Sub-Topic": st.column_config.TextColumn("Sub-Topic"),
-                        "Total Questions": st.column_config.NumberColumn("Total Questions", format="%d"),
-                        "Attempted": st.column_config.NumberColumn("Attempted", format="%d"),
-                        "Correct": st.column_config.NumberColumn("Correct", format="%d"),
-                        "Days Practiced": st.column_config.NumberColumn("Days Practiced", format="%d", help="Number of unique days the student worked on this topic"),
-                        "Total Days": st.column_config.NumberColumn("Total Days", format="%d", help="Number of days student was supposed to practice (from created date to deadline)")
-                    },
-                    use_container_width=True
-                )
-                
-                # Add a legend/explanation for metrics
-                st.markdown("""
-                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; border-left: 3px solid #4CAF50;">
-                        <h4 style="margin-top: 0;">Understanding the Metrics</h4>
-                        <ul>
-                            <li><strong>Total Questions</strong>: The total number of questions available for practice in this topic</li>
-                            <li><strong>Attempted</strong>: How many questions the student has tried so far</li>
-                            <li><strong>Correct</strong>: How many questions the student answered correctly</li>
-                            <li><strong>Days Practiced</strong>: Number of unique days the student worked on this topic</li>
-                            <li><strong>Total Days</strong>: Number of days student was supposed to practice (from created date to deadline)</li>
-                        </ul>
-                    </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.info("No data available to generate parent summary.")
+            # Show message when button isn't clicked yet
+            st.info("Select a student and topics, then click 'Generate Report' to view detailed progress information.")
 
 with tab6:
     view_questions()
